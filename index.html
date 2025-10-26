@@ -3,11 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="École d'informatique d'excellence - Formations Bachelor à Master avec opportunités internationales">
     <title>École d'Informatique - Accueil</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <header>
+    <div id="intro-overlay">
+        <video id="intro-video" autoplay muted playsinline>
+            <source src="videos/cinematic.mp4" type="video/mp4">
+            Votre navigateur ne supporte pas la vidéo.
+        </video>
+        <button id="skip-intro" aria-label="Passer l'introduction">Passer</button>
+    </div>
+
+    <header class="hidden">
         <div class="container">
             <img src="images/logo.png" alt="Logo de l'école" class="logo">
             <nav id="nav-menu">
@@ -15,27 +24,132 @@
                     <li><a href="index.html">Accueil</a></li>
                     <li><a href="a-propos.html">À propos</a></li>
                     <li><a href="programmes.html">Programmes</a></li>
-                    <li><a href="international.html">Mobilité Internationale</a></li>
+                    <li><a href="international.html">International</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
             </nav>
-            <button id="menu-toggle">☰</button>
+            <button id="menu-toggle" aria-label="Menu de navigation">☰</button>
         </div>
     </header>
-    <main>
+
+    <main class="hidden">
         <section class="hero">
-            <h1>Bienvenue à l'École d'Informatique</h1>
-            <p>Formations de Bachelor à Master, avec accompagnement pour vos voyages à l'étranger |(agence de voyage).</p>
-            <a href="programmes.html" class="btn">Découvrez nos programmes</a>
+            <div class="hero-content">
+                <h1>Formez-vous aux Métiers du Numérique</h1>
+                <p>Excellence académique, innovation pédagogique et ouverture internationale</p>
+                <div class="hero-buttons">
+                    <a href="programmes.html" class="btn-primary">Découvrir nos programmes</a>
+                    <a href="contact.html" class="btn-secondary">Prendre rendez-vous</a>
+                </div>
+            </div>
         </section>
-        <section class="overview">
-            <h2>Pourquoi nous choisir ?</h2>
-            <p>Nos programmes innovants en informatique, combinés à un soutien pour les expériences internationales et nos diplomes sont reconnus partout.</p>
+
+        <section class="features">
+            <div class="container">
+                <h2>Pourquoi Nous Choisir ?</h2>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🎓</div>
+                        <h3>Diplômes Reconnus</h3>
+                        <p>Nos diplômes de Bachelor à Master sont reconnus internationalement et valorisés par les entreprises du secteur.</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">💼</div>
+                        <h3>Insertion Professionnelle</h3>
+                        <p>95% de nos diplômés trouvent un emploi dans les 6 mois suivant l'obtention de leur diplôme.</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🌍</div>
+                        <h3>Mobilité Internationale</h3>
+                        <p>Accompagnement personnalisé pour vos expériences à l'étranger avec notre agence de voyage partenaire.</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🚀</div>
+                        <h3>Innovation & Pratique</h3>
+                        <p>Projets concrets, hackathons et partenariats avec des entreprises leaders du numérique.</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">👥</div>
+                        <h3>Réseau d'Alumni</h3>
+                        <p>Rejoignez une communauté de plus de 5000 diplômés présents dans le monde entier.</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Technologies de Pointe</h3>
+                        <p>Formations actualisées sur les dernières technologies : IA, Cloud, Cybersécurité, DevOps.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">15+</div>
+                        <div class="stat-label">Années d'Excellence</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">5000+</div>
+                        <div class="stat-label">Diplômés</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">95%</div>
+                        <div class="stat-label">Taux d'Insertion</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Partenaires Internationaux</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="programs-preview">
+            <div class="container">
+                <h2>Nos Formations</h2>
+                <p class="section-subtitle">Du Bachelor au Master, trouvez la formation qui vous correspond</p>
+                <div class="programs-grid">
+                    <div class="program-card">
+                        <h3>Bachelor Informatique</h3>
+                        <p>Formation complète en 3 ans pour maîtriser les fondamentaux du développement et des systèmes.</p>
+                        <a href="programmes.html" class="btn-link">En savoir plus →</a>
+                    </div>
+                    <div class="program-card">
+                        <h3>Master Cybersécurité</h3>
+                        <p>Spécialisez-vous dans la protection des systèmes et la gestion des risques numériques.</p>
+                        <a href="programmes.html" class="btn-link">En savoir plus →</a>
+                    </div>
+                    <div class="program-card">
+                        <h3>Master Data Science</h3>
+                        <p>Devenez expert en analyse de données, machine learning et intelligence artificielle.</p>
+                        <a href="programmes.html" class="btn-link">En savoir plus →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <div class="container">
+                <h2>Prêt à Commencer Votre Aventure ?</h2>
+                <p>Rejoignez notre communauté d'étudiants passionnés et construisez votre avenir dans le numérique</p>
+                <a href="contact.html" class="btn-primary">Contactez-nous</a>
+            </div>
         </section>
     </main>
-    <footer>
-        <p>&copy; 2025 École d'Informatique. Tous droits réservés.</p>
+
+    <footer class="hidden">
+        <div class="container">
+            <p>&copy; 2025 École d'Informatique. Tous droits réservés.</p>
+            <ul class="social-links">
+                <li><a href="#" aria-label="Facebook">Facebook</a></li>
+                <li><a href="#" aria-label="LinkedIn">LinkedIn</a></li>
+                <li><a href="#" aria-label="Twitter">Twitter</a></li>
+                <li><a href="#" aria-label="Instagram">Instagram</a></li>
+            </ul>
+        </div>
     </footer>
+
     <script src="js/script.js"></script>
 </body>
 </html>
