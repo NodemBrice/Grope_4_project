@@ -3,36 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>École d'Informatique - À propos</title>
+    <meta name="description" content="Découvrez notre école d'informatique, nos valeurs, nos formations et nos opportunités internationales">
+    <title>À Propos - École d'Informatique</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
         <div class="container">
-            <img src="images/logo.png" alt="Logo de l'école" class="logo">
+            <img src="images/logo.png" alt="Logo École d'Informatique" class="logo">
             <nav id="nav-menu">
                 <ul>
                     <li><a href="index.html">Accueil</a></li>
                     <li><a href="a-propos.html">À propos</a></li>
                     <li><a href="programmes.html">Programmes</a></li>
-                    <li><a href="international.html">Mobilité Internationale</a></li>
+                    <li><a href="international.html">International</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
             </nav>
-            <button id="menu-toggle">☰</button>
+            <button id="menu-toggle" aria-label="Menu de navigation">☰</button>
         </div>
     </header>
+
     <main>
-        <section>
-            <h1>À propos de nous</h1>
-            <p>Fondée en 2010, notre école forme les futurs experts en informatique avec une approche pratique et internationale.</p>
-            <h2>Notre mission</h2>
-            <p>Fournir une éducation de qualité et accompagner les étudiants dans leurs projets mondiaux.</p>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>À Propos de Notre École</h1>
+                <p>Une institution d'excellence dédiée à former les talents du numérique avec une vision internationale</p>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2>Notre Histoire</h2>
+                <p style="max-width: 800px; margin: 0 auto 40px; text-align: center; font-size: 1.1em; line-height: 1.8;">
+                    Fondée en 2010, notre école d'informatique s'est rapidement imposée comme une référence dans la formation aux métiers du numérique. Née de la volonté de professionnels passionnés, notre établissement a pour ambition de former des experts capables de relever les défis technologiques d'aujourd'hui et de demain, tout en s'ouvrant sur le monde.
+                </p>
+
+                <h2 style="margin-top: 60px;">Nos Valeurs</h2>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h3>Excellence Académique</h3>
+                        <p>Nous proposons des programmes rigoureux et actualisés, conçus avec des professionnels du secteur pour garantir l'employabilité de nos diplômés.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Innovation Pédagogique</h3>
+                        <p>Nos méthodes d'enseignement allient théorie et pratique avec des projets concrets, des hackathons et des collaborations avec des entreprises partenaires.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Ouverture Internationale</h3>
+                        <p>Nous encourageons la mobilité étudiante et offrons de nombreuses opportunités d'échanges académiques et professionnels à travers le monde.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <div class="container">
+                <h2>Rejoignez Notre Communauté</h2>
+                <p>Découvrez comment notre école peut vous aider à réaliser vos ambitions professionnelles et internationales.</p>
+                <a href="contact.html" class="btn-primary">Prendre rendez-vous</a>
+                <a href="programmes.html" class="btn-secondary">Voir les programmes</a>
+            </div>
         </section>
     </main>
+
     <footer>
-        <p>&copy; 2025 École d'Informatique. Tous droits réservés.</p>
+        <div class="container">
+            <p>&copy; 2025 École d'Informatique. Tous droits réservés.</p>
+            <ul class="social-links">
+                <li><a href="#" aria-label="Facebook">Facebook</a></li>
+                <li><a href="#" aria-label="LinkedIn">LinkedIn</a></li>
+                <li><a href="#" aria-label="Twitter">Twitter</a></li>
+                <li><a href="#" aria-label="Instagram">Instagram</a></li>
+            </ul>
+        </div>
     </footer>
+
     <script src="js/script.js"></script>
 </body>
 </html>
