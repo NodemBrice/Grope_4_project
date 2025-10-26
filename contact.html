@@ -15,30 +15,48 @@
                     <li><a href="index.html">Accueil</a></li>
                     <li><a href="a-propos.html">À propos</a></li>
                     <li><a href="programmes.html">Programmes</a></li>
+Lowe
                     <li><a href="international.html">Mobilité a prix reduit</a></li>
                     <li><a href="contact.html">Contact</a></li>
+
+ main
                 </ul>
             </nav>
             <button id="menu-toggle">☰</button>
         </div>
     </header>
+
     <main>
-        <section>
-            <h1>Contactez-nous</h1>
-            <form id="contact-form" action="mailto:info@ecole-informatique.com" method="post" enctype="text/plain">
-                <label for="name">Nom :</label>
-                <input type="text" id="name" name="name" required>
-                <label for="email">Email :</label>
-                <input type="email" id="email" name="email" required>
-                <label for="message">Message :</label>
-                <textarea id="message" name="message" required></textarea>
-                <button type="submit">Envoyer</button>
-            </form>
+        <section class="contact-section">
+            <div class="overlay"></div>
+            <div class="contact-container">
+                <h1>Contactez-nous</h1>
+                <p>Une question, un projet ou une demande d’inscription ?  
+                Remplissez le formulaire ci-dessous et notre équipe vous répondra rapidement.</p>
+
+                <form id="contact-form" action="mailto:info@ecole-informatique.com" method="post" enctype="text/plain">
+                    <div class="form-group">
+                        <label for="name">Nom</label>
+                        <input type="text" id="name" name="name" placeholder="Entrez votre nom" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="votre@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="5" placeholder="Votre message ici..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Envoyer</button>
+                </form>
+            </div>
         </section>
     </main>
+
     <footer>
         <p>&copy; 2025 École d'Informatique. Tous droits réservés.</p>
     </footer>
+
     <script src="js/script.js"></script>
 </body>
 </html>
