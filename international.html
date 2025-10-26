@@ -3,35 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>École d'Informatique - Mobilité Internationale</title>
+    <title>Mobilité Internationale - Keyce Informatique</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
-        <div class="container">
-            <img src="images/logo.png" alt="Logo de l'école" class="logo">
-            <nav id="nav-menu">
-                <ul>
+        <div class="container nav-container">
+            <div class="logo">
+                <span class="logo-icon">💻</span>
+                <h1>Keyce Informatique</h1>
+            </div>
+            <div class="mobile-menu">☰</div>
+            <nav>
+                <ul class="nav-menu">
                     <li><a href="index.html">Accueil</a></li>
                     <li><a href="a-propos.html">À propos</a></li>
                     <li><a href="programmes.html">Programmes</a></li>
                     <li><a href="international.html">Mobilité Internationale</a></li>
                     <li><a href="contact.html">Contact</a></li>
+
                 </ul>
             </nav>
-            <button id="menu-toggle">☰</button>
         </div>
     </header>
-    <main>
-        <section>
+
+    <section class="page-hero">
+        <div class="container">
             <h1>Mobilité Internationale</h1>
-            <p>Nous accompagnons nos étudiants dans les procédures de visas, échanges et stages à l'étranger.</p>
-            <p>Partenariats avec des universités en Europe, USA et Asie.</p>
-        </section>
-    </main>
+            <p>Vivez une expérience académique à l'étranger</p>
+        </div>
+    </section>
+
+    <section id="mobilite">
+        <div class="container">
+            <div class="mobility-content">
+                <div class="mobility-text">
+                    <h2>Ouvrez-vous sur le monde</h2>
+                    <p>Keyce Informatique vous offre l'opportunité de poursuivre une partie de votre formation dans l'une de nos universités partenaires à travers le monde.</p>
+                    <p>Notre service dédié vous accompagne dans toutes les démarches : choix de la destination, inscription, logement et intégration.</p>
+                    <ul class="benefits-list">
+                        <li>Étudiez dans plus de 20 pays partenaires</li>
+                        <li>Bénéficiez d'un accompagnement personnalisé</li>
+                        <li>Valorisez votre CV avec une expérience internationale</li>
+                        <li>Développez votre réseau professionnel à l'étranger</li>
+                        <li>Maîtrisez une nouvelle langue et culture</li>
+                    </ul>
+                </div>
+                <div class="mobility-image">
+                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Étudiants internationaux">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="partners">
+        <div class="container">
+            <div class="section-title">
+                <h2>Nos Universités Partenaires</h2>
+            </div>
+            <div class="partners-grid">
+                <div class="partner-card">
+                    <h3>Canada</h3>
+                    <p>Université de Montréal, Université de Toronto</p>
+                </div>
+                <div class="partner-card">
+                    <h3>États-Unis</h3>
+                    <p>MIT, Stanford University, UC Berkeley</p>
+                </div>
+                <div class="partner-card">
+                    <h3>Europe</h3>
+                    <p>ETH Zurich, TU Munich, Université d'Oxford</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer>
-        <p>&copy; 2025 École d'Informatique. Tous droits réservés.</p>
+        <div class="container">
+            <div class="footer-content">
+                <!-- Même footer que index.html -->
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 École Keyce Informatique. Tous droits réservés.</p>
+            </div>
+        </div>
     </footer>
+
     <script src="js/script.js"></script>
 </body>
 </html>

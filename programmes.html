@@ -3,36 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>École d'Informatique - Programmes</title>
+    <title>Programmes - Keyce Informatique</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
-        <div class="container">
-            <img src="images/logo.png" alt="Logo de l'école" class="logo">
-            <nav id="nav-menu">
-                <ul>
+        <div class="container nav-container">
+            <div class="logo">
+                <span class="logo-icon">💻</span>
+                <h1>Keyce Informatique</h1>
+            </div>
+            <div class="mobile-menu">☰</div>
+            <nav>
+                <ul class="nav-menu">
                     <li><a href="index.html">Accueil</a></li>
                     <li><a href="a-propos.html">À propos</a></li>
                     <li><a href="programmes.html">Programmes</a></li>
                     <li><a href="international.html">Mobilité Internationale</a></li>
                     <li><a href="contact.html">Contact</a></li>
+
                 </ul>
             </nav>
-            <button id="menu-toggle">☰</button>
         </div>
     </header>
-    <main>
-        <section>
-            <h1>Nos Programmes</h1>
-            <p>Découvrez nos formations en Bachelor et Master.........</p>
-            <a href="bachelor.html" class="btn">Bachelor en Informatique</a>
-            <a href="master.html" class="btn">Master en Informatique</a>
-        </section>
-    </main>
+
+    <section class="page-hero">
+        <div class="container">
+            <h1>Nos Programmes de Formation</h1>
+            <p>Des parcours adaptés à vos ambitions professionnelles</p>
+        </div>
+    </section>
+
+    <section class="programs">
+        <div class="container">
+            <div class="programs-grid">
+                <div class="program-card">
+                    <div class="program-image">
+                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Développement Web">
+                    </div>
+                    <div class="program-content">
+                        <span class="program-level">Bachelor (3 ans)</span>
+                        <h3>Développement Web & Mobile</h3>
+                        <p>Formation complète aux technologies front-end et back-end, frameworks modernes et développement d'applications mobiles.</p>
+                        <ul class="program-features">
+                            <li>HTML5, CSS3, JavaScript</li>
+                            <li>React, Angular, Vue.js</li>
+                            <li>Node.js, Python, PHP</li>
+                            <li>React Native, Flutter</li>
+                        </ul>
+                        <a href="contact.html" class="btn">S'inscrire</a>
+                    </div>
+                </div>
+                
+                <div class="program-card">
+                    <div class="program-image">
+                        <img src="https://images.unsplash.com/photo-1555949963-aa79dcee981c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Data Science">
+                    </div>
+                    <div class="program-content">
+                        <span class="program-level">Master (2 ans)</span>
+                        <h3>Data Science & Intelligence Artificielle</h3>
+                        <p>Apprenez à extraire des insights précieux des données et développez des solutions d'intelligence artificielle.</p>
+                        <ul class="program-features">
+                            <li>Machine Learning, Deep Learning</li>
+                            <li>Python, R, SQL</li>
+                            <li>Big Data, Hadoop, Spark</li>
+                            <li>Visualisation de données</li>
+                        </ul>
+                        <a href="contact.html" class="btn">S'inscrire</a>
+                    </div>
+                </div>
+                
+                <div class="program-card">
+                    <div class="program-image">
+                        <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Cybersécurité">
+                    </div>
+                    <div class="program-content">
+                        <span class="program-level">Bachelor/Master</span>
+                        <h3>Cybersécurité & Réseaux</h3>
+                        <p>Devenez expert en sécurité informatique, protection des données et gestion des infrastructures réseaux.</p>
+                        <ul class="program-features">
+                            <li>Sécurité des réseaux</li>
+                            <li>Cryptographie</li>
+                            <li>Ethical Hacking</li>
+                            <li>Gestion des incidents</li>
+                        </ul>
+                        <a href="contact.html" class="btn">S'inscrire</a>
+                    </div>
+                </div>
+
+                <div class="program-card">
+                    <div class="program-image">
+                        <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Cloud Computing">
+                    </div>
+                    <div class="program-content">
+                        <span class="program-level">Master</span>
+                        <h3>Cloud Computing & DevOps</h3>
+                        <p>Maîtrisez les technologies cloud et les méthodologies DevOps pour le déploiement d'applications modernes.</p>
+                        <ul class="program-features">
+                            <li>AWS, Azure, Google Cloud</li>
+                            <li>Docker, Kubernetes</li>
+                            <li>CI/CD, Infrastructure as Code</li>
+                            <li>Monitoring et optimisation</li>
+                        </ul>
+                        <a href="contact.html" class="btn">S'inscrire</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer>
-        <p>&copy; 2025 École d'Informatique. Tous droits réservés.</p>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>Keyce Informatique</h3>
+                    <p>Formation d'excellence en informatique avec une ouverture internationale.</p>
+                </div>
+                <div class="footer-column">
+                    <h3>Liens rapides</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Accueil</a></li>
+                        <li><a href="a-propos.html">À propos</a></li>
+                        <li><a href="programmes.html">Programmes</a></li>
+                        <li><a href="international.html">Mobilité Internationale</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Programmes</h3>
+                    <ul class="footer-links">
+                        <li><a href="programmes.html">Développement Web & Mobile</a></li>
+                        <li><a href="programmes.html">Data Science & IA</a></li>
+                        <li><a href="programmes.html">Cybersécurité & Réseaux</a></li>
+                        <li><a href="programmes.html">Cloud Computing</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 École Keyce Informatique. Tous droits réservés.</p>
+            </div>
+        </div>
     </footer>
+
     <script src="js/script.js"></script>
 </body>
 </html>

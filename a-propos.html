@@ -3,36 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>École d'Informatique - À propos</title>
+    <title>À propos - Keyce Informatique</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
-        <div class="container">
-            <img src="images/logo.png" alt="Logo de l'école" class="logo">
-            <nav id="nav-menu">
-                <ul>
+        <div class="container nav-container">
+            <div class="logo">
+                <span class="logo-icon">💻</span>
+                <h1>Keyce Informatique</h1>
+            </div>
+            <div class="mobile-menu">☰</div>
+            <nav>
+                <ul class="nav-menu">
                     <li><a href="index.html">Accueil</a></li>
                     <li><a href="a-propos.html">À propos</a></li>
                     <li><a href="programmes.html">Programmes</a></li>
                     <li><a href="international.html">Mobilité Internationale</a></li>
                     <li><a href="contact.html">Contact</a></li>
+
                 </ul>
             </nav>
-            <button id="menu-toggle">☰</button>
         </div>
     </header>
-    <main>
-        <section>
-            <h1>À propos de nous</h1>
-            <p>Fondée en 2010, notre école forme les futurs experts en informatique avec une approche pratique et internationale.</p>
-            <h2>Notre mission</h2>
-            <p>Fournir une éducation de qualité et accompagner les étudiants dans leurs projets mondiaux.</p>
-        </section>
-    </main>
+
+    <section class="page-hero">
+        <div class="container">
+            <h1>À propos de Keyce Informatique</h1>
+            <p>Découvrez notre histoire, notre mission et nos valeurs</p>
+        </div>
+    </section>
+
+    <section id="histoire">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>Notre Histoire</h2>
+                    <p>Fondée en 2005, Keyce Informatique est née de la passion pour les technologies et de la conviction que l'éducation est la clé de la transformation numérique.</p>
+                    <p>Depuis nos débuts, nous avons formé plus de 5 000 professionnels qui excellent aujourd'hui dans les plus grandes entreprises technologiques.</p>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Équipe Keyce Informatique">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="values">
+        <div class="container">
+            <div class="section-title">
+                <h2>Nos Valeurs</h2>
+            </div>
+            <div class="values-grid">
+                <div class="value-card">
+                    <h3>Excellence</h3>
+                    <p>Nous visons l'excellence académique et professionnelle dans tous nos programmes.</p>
+                </div>
+                <div class="value-card">
+                    <h3>Innovation</h3>
+                    <p>Nous intégrons les dernières technologies et méthodologies dans notre enseignement.</p>
+                </div>
+                <div class="value-card">
+                    <h3>Ouverture</h3>
+                    <p>Nous encourageons la diversité et l'ouverture internationale.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer>
-        <p>&copy; 2025 École d'Informatique. Tous droits réservés.</p>
+        <div class="container">
+            <div class="footer-content">
+                <!-- Même footer que index.html -->
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 École Keyce Informatique. Tous droits réservés.</p>
+            </div>
+        </div>
     </footer>
+
     <script src="js/script.js"></script>
 </body>
 </html>

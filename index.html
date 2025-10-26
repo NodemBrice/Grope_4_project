@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>École d'Informatique - Accueil</title>
+    <title>Keyce Informatique - École d'Informatique</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Header -->
     <header>
-        <div class="container">
-            <img src="images/logo.png" alt="Logo de l'école" class="logo">
-            <nav id="nav-menu">
-                <ul>
+        <div class="container nav-container">
+            <div class="logo">
+                <span class="logo-icon">💻</span>
+                <h1>Keyce Informatique</h1>
+            </div>
+            <div class="mobile-menu">☰</div>
+            <nav>
+                <ul class="nav-menu">
                     <li><a href="index.html">Accueil</a></li>
                     <li><a href="a-propos.html">À propos</a></li>
                     <li><a href="programmes.html">Programmes</a></li>
@@ -19,23 +24,70 @@
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
             </nav>
-            <button id="menu-toggle">☰</button>
         </div>
     </header>
-    <main>
-        <section class="hero">
-            <h1>Bienvenue à l'École d'Informatique</h1>
-            <p>Formations de Bachelor à Master, avec accompagnement pour vos voyages à l'étranger |(agence de voyage).</p>
-            <a href="programmes.html" class="btn">Découvrez nos programmes</a>
-        </section>
-        <section class="overview">
-            <h2>Pourquoi nous choisir ?</h2>
-            <p>Nos programmes innovants en informatique, combinés à un soutien pour les expériences internationales et nos diplomes sont reconnus partout.</p>
-        </section>
-    </main>
+
+    <!-- Hero Section -->
+    <section class="hero" id="accueil">
+        <div class="container">
+            <h2>Bienvenue à l'École Keyce Informatique</h2>
+            <p>Formations de Bachelor à Master, avec accompagnement pour vos voyages à l'étranger. Nos diplômes sont reconnus internationalement.</p>
+            <a href="programs.html" class="btn">Découvrez nos programmes</a>
+            <a href="contact.html" class="btn btn-secondary">Nous contacter</a>
+        </div>
+    </section>
+
+    <!-- Section présentation rapide -->
+    <section id="presentation">
+        <div class="container">
+            <div class="section-title">
+                <h2>Pourquoi choisir Keyce Informatique ?</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎓</div>
+                    <h3>Formations reconnues</h3>
+                    <p>Diplômes accrédités par l'État et reconnus internationalement</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Ouverture internationale</h3>
+                    <p>Partenariats avec plus de 20 universités dans le monde</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💼</div>
+                    <h3>Insertion professionnelle</h3>
+                    <p>95% de nos diplômés trouvent un emploi dans les 6 mois</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
     <footer>
-        <p>&copy; 2025 École d'Informatique. Tous droits réservés.</p>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>Keyce Informatique</h3>
+                    <p>Formation d'excellence en informatique avec une ouverture internationale.</p>
+                </div>
+                <div class="footer-column">
+                    <h3>Liens rapides</h3>
+                    <ul class="footer-links">
+                         <li><a href="index.html">Accueil</a></li>
+                    	 <li><a href="a-propos.html">À propos</a></li>
+                    	 <li><a href="programmes.html">Programmes</a></li>
+                    	 <li><a href="international.html">Mobilité Internationale</a></li>
+                    	 <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 École Keyce Informatique. Tous droits réservés.</p>
+            </div>
+        </div>
     </footer>
+
     <script src="js/script.js"></script>
 </body>
 </html>
