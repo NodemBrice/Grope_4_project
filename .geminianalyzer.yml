@@ -25,3 +25,4 @@ rules_override: |
   - Interdire l'utilisation de 'var' en JavaScript (utiliser 'let' ou 'const').
   - Assurer que toutes les requêtes SQL (si présentes) utilisent des requêtes préparées pour éviter l'injection.
   - Tous les composants React doivent être des fonctions et non des classes.
+  

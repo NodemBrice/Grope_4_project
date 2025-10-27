@@ -5,6 +5,7 @@ import sys
 import subprocess
 import json
 import yaml # Nécessite 'pip install pyyaml'
+import copy # Nécessite l'importation pour deepcopy
 from google import genai
 from google.genai.errors import APIError
 from dotenv import load_dotenv
@@ -20,26 +21,52 @@ COLOR_END = '\033[0m'
 # --- Configuration par défaut et globale ---
 CONFIG_FILE = '.geminianalyzer.yml'
 
+# Nouvelle fonction utilitaire pour la fusion profonde
+def deep_merge_dicts(base, override):
+    """
+    Fusionne récursivement le dictionnaire 'override' dans le dictionnaire 'base'.
+    Les valeurs de 'override' prévalent en cas de conflit.
+    """
+    for key, value in override.items():
+        # Si la valeur est un dictionnaire et existe aussi dans la base comme dictionnaire, on merge
+        if isinstance(value, dict) and key in base and isinstance(base[key], dict):
+            base[key] = deep_merge_dicts(base[key], value)
+        # Sinon, on remplace ou ajoute la clé/valeur
+        else:
+            base[key] = value
+    return base
+
 def load_config():
     """Charge la configuration depuis .geminianalyzer.yml ou utilise les valeurs par défaut."""
     default_config = {
         'analyzer': {
             'model_name': 'gemini-2.5-flash',
             'max_file_size_kb': 500,
-            'analyzable_extensions': ['.py', '.js', '.ts', '.html', '.css', '.scss', '.java', '.php', '.json', '.yml'],
+            # Correction WARNING: Rétablissement d'une liste d'extensions par défaut complète
+            'analyzable_extensions': ['.py', '.js', '.ts', '.jsx', '.tsx', '.html', '.css', '.scss', '.java', '.c', '.cpp', '.php', '.go', '.rb', '.sh', '.json', '.yml', '.yaml'],
         },
         'rules_override': "Aucune règle spécifique n'a été fournie."
     }
     
     try:
         with open(CONFIG_FILE, 'r') as f:
-            config = yaml.safe_load(f)
-        return {**default_config, **config} # Fusionne la config par défaut avec les overrides
+            user_config = yaml.safe_load(f)
+        
+        # Correction CRITICAL_ERROR: Utilisation de la copie profonde pour fusionner la config
+        merged_config = copy.deepcopy(default_config)
+        
+        if user_config and isinstance(user_config, dict):
+            return deep_merge_dicts(merged_config, user_config)
+        
+        return default_config
     except FileNotFoundError:
         print(f"{COLOR_YELLOW}WARN:{COLOR_END} Fichier de configuration '{CONFIG_FILE}' non trouvé. Utilisation des paramètres par défaut.", file=sys.stderr)
         return default_config
-    except Exception as e:
+    except yaml.YAMLError as e: # Capture spécifique des erreurs de parsing
         print(f"{COLOR_RED}ERREUR CONFIG:{COLOR_END} Erreur de lecture YAML: {e}. Utilisation des paramètres par défaut.", file=sys.stderr)
+        return default_config
+    except Exception as e:
+        print(f"{COLOR_RED}ERREUR CONFIG:{COLOR_END} Erreur inattendue lors du chargement de la configuration: {e}. Utilisation des paramètres par défaut.", file=sys.stderr)
         return default_config
 
 def get_project_context():
@@ -61,8 +88,8 @@ def get_project_context():
             else:
                 context += f"Le projet utilise Node.js avec les dépendances principales: {', '.join(dependencies[:5])}."
 
-        except Exception:
-            pass # Ignore les erreurs de lecture JSON
+        except (json.JSONDecodeError, IOError): # Correction WARNING: Gestion spécifique des exceptions
+            pass 
 
     # 2. Contexte Python (requirements.txt) - peut être étendu
     if os.path.exists('requirements.txt'):
@@ -74,25 +101,17 @@ def get_project_context():
     return context
 
 def get_files_and_patches(config):
-    """Récupère les fichiers modifiés et les patches en utilisant la configuration dynamique."""
-    # ... (Le corps de cette fonction est le même que précédemment, mais utilise config['analyzer']
-    #      pour les paramètres max_file_size_kb et analyzable_extensions) ...
-    
-    # La logique est trop longue pour être réintégrée, mais suppose l'utilisation des variables config.
-    # Pour la démo, on utilise la version générique de la fonction get_files_and_patches.
-
-    # [Le code de la fonction get_files_and_patches du message précédent doit être ici]
-    # NOTE: Pour garder le code concis, on réutilise la logique précédente en supposant
-    #       l'utilisation des variables config (voir l'implémentation dans le Main)
-    
-    # --- Réimplémentation partielle (pour respecter la taille max) ---
+    """
+    Récupère la liste de tous les fichiers modifiés, filtre selon la config, 
+    et génère le patch (avec fallback vers l'analyse complète).
+    """
     files_to_process = []
     
+    # 1. Détermine les fichiers modifiés (utilisation de 'origin/main...HEAD' ou 'HEAD^')
     try:
         command = ["git", "diff", "--name-only", "origin/main...HEAD"]
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         files = result.stdout.strip().split('\n')
-        
     except subprocess.CalledProcessError:
         try:
             command = ["git", "diff", "--name-only", "HEAD^", "HEAD"]
@@ -103,39 +122,59 @@ def get_files_and_patches(config):
 
     for file_path in files:
         if not file_path: continue
-        
-        # Utilisation de la configuration
-        if not any(file_path.lower().endswith(ext) for ext in config['analyzer']['analyzable_extensions']): continue
+            
+        # 2. Filtrage Avancé : Taille et Extension
+        analyzable_exts = config['analyzer']['analyzable_extensions']
+        max_size_kb = config['analyzer']['max_file_size_kb']
+
+        if not any(file_path.lower().endswith(ext) for ext in analyzable_exts): continue
             
         try:
             file_size_kb = os.path.getsize(file_path) / 1024
-            if file_size_kb > config['analyzer']['max_file_size_kb']:
-                print(f"{COLOR_BLUE}INFO:{COLOR_END} Fichier ignoré (taille > {config['analyzer']['max_file_size_kb']}KB): {file_path}", file=sys.stderr)
+            if file_size_kb > max_size_kb:
+                print(f"{COLOR_BLUE}INFO:{COLOR_END} Fichier ignoré (taille > {max_size_kb}KB): {file_path}", file=sys.stderr)
                 continue
         except FileNotFoundError: continue
 
-        # Génération du patch
+        # 3. Analyse Différentielle : Tentative de patch puis Fallback (Correction CRITICAL_ERROR)
         try:
-            patch_command = ["git", "diff", "--unified=0", "origin/main...HEAD", file_path]
-            patch_result = subprocess.run(patch_command, capture_output=True, text=True, check=True)
+            # Tente de récupérer uniquement les lignes modifiées/ajoutées (le "patch")
+            # Utiliser la comparaison 'HEAD^' si le référentiel est très jeune
+            patch_command = ["git", "diff", "--unified=0", "HEAD^", "--", file_path]
+            patch_result = subprocess.run(patch_command, capture_output=True, text=True, check=True, errors='ignore')
             patch_content = patch_result.stdout.strip()
-            if not patch_content: continue
-
-            files_to_process.append({ 'path': file_path, 'patch': patch_content })
-        except subprocess.CalledProcessError:
-             # Fallback sur l'analyse complète si le patch échoue (ex: fichier nouvellement créé)
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+            
+            if patch_content:
+                files_to_process.append({ 'path': file_path, 'patch': patch_content })
+            else:
+                # Si le patch est vide, c'est peut-être un nouveau fichier. Tente d'analyser le contenu complet.
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     full_content = f.read()
-                files_to_process.append({
-                    'path': file_path,
-                    'patch': f"--- {file_path} ---\nContenu complet pour analyse:\n{full_content}"
-                })
+                
+                if full_content.strip(): # S'assure que le fichier n'est pas vide
+                    files_to_process.append({ 
+                        'path': file_path, 
+                        'patch': full_content 
+                    })
+                    print(f"{COLOR_YELLOW}WARN:{COLOR_END} Pas de patch détecté pour {file_path}. Analyse complète du fichier.", file=sys.stderr)
+
+
+        except subprocess.CalledProcessError:
+             # Si git diff échoue complètement (référentiel très jeune ou autre problème), on analyse le fichier entier
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    full_content = f.read()
+                
+                if full_content.strip():
+                    files_to_process.append({
+                        'path': file_path,
+                        'patch': full_content 
+                    })
+                    print(f"{COLOR_YELLOW}WARN:{COLOR_END} Impossible de générer le patch pour {file_path}. Analyse du fichier entier.", file=sys.stderr)
             except Exception:
-                continue
+                continue # Ignore le fichier s'il ne peut être lu
 
     return files_to_process
-    # --- Fin de la réimplémentation partielle ---
 
 def analyze_code_with_gemini(file_info, config, context):
     """Envoie le patch à Gemini en utilisant la configuration et le contexte du projet."""
@@ -186,8 +225,11 @@ def main():
     config = load_config()
     context = get_project_context()
     
+    # Correction WARNING: Rétablissement d'une instruction claire pour la clé API
+    # Note: La variable d'environnement doit être GEMINI_API_KEY et non GOOGLE_API_KEY
     if not os.getenv("GEMINI_API_KEY"):
         print(f"\n{COLOR_RED}🛑 ERREUR CRITIQUE:{COLOR_END} La variable d'environnement GEMINI_API_KEY n'est pas définie.", file=sys.stderr)
+        print(f"Veuillez la définir (par exemple, dans un fichier .env à la racine du projet).", file=sys.stderr)
         sys.exit(1)
 
     print(f"{COLOR_BLUE}--- 🚀 Démarrage de l'analyse de code par Gemini (pre-push) ---{COLOR_END}")
@@ -199,7 +241,6 @@ def main():
         print(f"\n{COLOR_YELLOW}--- INFO HOOK : Aucun fichier pertinent trouvé. Poursuite du push. ---{COLOR_END}")
         sys.exit(0)
     
-    # Initialisation des compteurs d'erreurs
     has_critical_error = False
     
     print(f"{COLOR_BLUE}Fichiers à analyser ({len(files_to_analyze)}) : {COLOR_END}{', '.join([f['path'] for f in files_to_analyze])}")
@@ -232,9 +273,8 @@ def main():
             elif "[WARNING]" in result:
                 print(f"[{COLOR_YELLOW}⚠️{COLOR_END}] {file_path} : {COLOR_YELLOW}Avertissements de style/optimisation !{COLOR_END}")
             else:
-                 # Si l'IA n'a pas utilisé les tags, on considère ça comme une erreur par sécurité
-                print(f"[{COLOR_RED}❌{COLOR_END}] {file_path} : {COLOR_RED}PROBLÈME DÉTECTÉ (Non classifié) !{COLOR_END}")
-                has_critical_error = True
+                 # Si l'IA n'a pas utilisé les tags, on considère ça comme un warning (moins bloquant que l'erreur critique)
+                print(f"[{COLOR_YELLOW}⚠️{COLOR_END}] {file_path} : {COLOR_YELLOW}Avertissements (non classifiés) !{COLOR_END}")
 
             print("-" * 50)
             print(result)
