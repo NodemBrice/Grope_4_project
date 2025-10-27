@@ -11,10 +11,32 @@ from dotenv import load_dotenv
 MODEL_NAME = 'gemini-2.5-flash'
 
 def get_staged_files():
-    """DOIT ÊTRE PRÉSENTE : Récupère la liste des fichiers modifiés dans le HEAD."""
-    # (Le corps de cette fonction doit utiliser 'git diff' pour lister les fichiers)
-    # ... code de la fonction ...
-    return [] # TEMPORAIRE
+    """Récupère la liste de TOUS les fichiers modifiés entre la branche locale (HEAD) 
+    et la dernière version distante connue (origin/main), ce qui correspond aux commits à pousser.
+    """
+    try:
+        # La commande la plus fiable pour un pre-push : compare la HEAD locale avec l'état distant
+        # '...' assure que la comparaison inclut tous les commits entre les deux références.
+        command = ["git", "diff", "--name-only", "origin/main...HEAD"]
+        
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        files = result.stdout.strip().split('\n')
+        
+        # Filtre les fichiers non pertinents
+        files = [f for f in files if f and not f.endswith(('.png', '.jpg', '.lock', '.min.js', '.map', '.log', '.md', '.env', '.gitignore'))]
+        
+        # Point de contrôle DEBUG:
+        print(f"DEBUG: Fichiers détectés par Git pour l'analyse: {files}", file=sys.stderr) 
+        
+        return files
+        
+    except subprocess.CalledProcessError as e:
+        # Ceci peut arriver si origin/main n'est pas encore traqué.
+        print(f"Avertissement (Git Error): Impossible de comparer avec origin/main. Erreur: {e.stderr.strip()}", file=sys.stderr)
+        return []
+    except Exception as e:
+        print(f"Avertissement (Detection Error): {e}", file=sys.stderr)
+        return []
 
 def analyze_code_with_gemini(file_path):
     """DOIT ÊTRE PRÉSENTE : Gère l'appel à l'API Gemini."""
