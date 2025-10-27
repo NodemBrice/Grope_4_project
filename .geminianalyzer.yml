@@ -1,0 +1,27 @@
+
+# --- Configuration du Modèle et de la Performance ---
+analyzer:
+  model_name: gemini-2.5-flash
+  # Limite la taille des fichiers à analyser pour des raisons de coût et de performance
+  max_file_size_kb: 500
+  # Extensions de fichiers qui seront analysées
+  analyzable_extensions: 
+    - .py
+    - .js
+    - .ts
+    - .tsx
+    - .jsx
+    - .html
+    - .css
+    - .scss
+    - .java
+    - .php
+    - .json
+    - .yml
+
+# --- Règles Spécifiques du Projet ---
+# Ces règles seront ajoutées au prompt de Gemini.
+rules_override: |
+  - Interdire l'utilisation de 'var' en JavaScript (utiliser 'let' ou 'const').
+  - Assurer que toutes les requêtes SQL (si présentes) utilisent des requêtes préparées pour éviter l'injection.
+  - Tous les composants React doivent être des fonctions et non des classes.

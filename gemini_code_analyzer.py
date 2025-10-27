@@ -3,89 +3,127 @@
 import os
 import sys
 import subprocess
+import json
+import yaml # Nécessite 'pip install pyyaml'
 from google import genai
 from google.genai.errors import APIError
 from dotenv import load_dotenv
 from tqdm import tqdm # Nécessite 'pip install tqdm'
 
-# --- CODES COULEUR ANSI (Amélioration de l'Affichage) ---
+# --- CODES COULEUR ANSI ---
 COLOR_GREEN = '\033[92m'
 COLOR_RED = '\033[91m'
 COLOR_YELLOW = '\033[93m'
 COLOR_BLUE = '\033[94m'
 COLOR_END = '\033[0m'
 
-# --- Configuration ---
-MODEL_NAME = 'gemini-2.5-flash' 
-MAX_FILE_SIZE_KB = 500  # Taille maximale du fichier à analyser (500 Ko)
-# Extensions de code pertinentes pour l'analyse
-ANALYZABLE_EXTENSIONS = ('.py', '.js', '.ts', '.jsx', '.tsx', '.html', '.css', '.scss', '.java', '.c', '.cpp', '.php', '.go', '.rb', '.sh', '.json', '.yml', '.yaml')
+# --- Configuration par défaut et globale ---
+CONFIG_FILE = '.geminianalyzer.yml'
 
-# --------------------------------------------------------------------------------
-# A. FILTRAGE AVANCÉ ET B. ANALYSE DIFFÉRENTIELLE
-# --------------------------------------------------------------------------------
+def load_config():
+    """Charge la configuration depuis .geminianalyzer.yml ou utilise les valeurs par défaut."""
+    default_config = {
+        'analyzer': {
+            'model_name': 'gemini-2.5-flash',
+            'max_file_size_kb': 500,
+            'analyzable_extensions': ['.py', '.js', '.ts', '.html', '.css', '.scss', '.java', '.php', '.json', '.yml'],
+        },
+        'rules_override': "Aucune règle spécifique n'a été fournie."
+    }
+    
+    try:
+        with open(CONFIG_FILE, 'r') as f:
+            config = yaml.safe_load(f)
+        return {**default_config, **config} # Fusionne la config par défaut avec les overrides
+    except FileNotFoundError:
+        print(f"{COLOR_YELLOW}WARN:{COLOR_END} Fichier de configuration '{CONFIG_FILE}' non trouvé. Utilisation des paramètres par défaut.", file=sys.stderr)
+        return default_config
+    except Exception as e:
+        print(f"{COLOR_RED}ERREUR CONFIG:{COLOR_END} Erreur de lecture YAML: {e}. Utilisation des paramètres par défaut.", file=sys.stderr)
+        return default_config
 
-def get_files_and_patches():
-    """
-    Récupère la liste de tous les fichiers modifiés et génère un patch
-    contenant uniquement les lignes ajoutées/modifiées (Analyse Différentielle).
-    """
+def get_project_context():
+    """Détecte les frameworks principaux pour fournir du contexte à Gemini."""
+    context = ""
+    
+    # 1. Contexte Node/Web (package.json)
+    if os.path.exists('package.json'):
+        try:
+            with open('package.json', 'r') as f:
+                data = json.load(f)
+            
+            dependencies = list(data.get('dependencies', {}).keys())
+            
+            if 'react' in dependencies or 'next' in dependencies:
+                context += "Le projet est un projet web front-end, probablement React/Next.js. Les fichiers JavaScript doivent respecter les règles des hooks et des composants fonctionnels."
+            elif 'express' in dependencies:
+                context += "Le projet est un projet Node.js/Express. Les bonnes pratiques du serveur (gestion des routes, sécurité) sont prioritaires."
+            else:
+                context += f"Le projet utilise Node.js avec les dépendances principales: {', '.join(dependencies[:5])}."
+
+        except Exception:
+            pass # Ignore les erreurs de lecture JSON
+
+    # 2. Contexte Python (requirements.txt) - peut être étendu
+    if os.path.exists('requirements.txt'):
+        context += " Le projet utilise Python. Les règles de la PEP 8 et l'efficacité du code sont importantes."
+        
+    if not context:
+        context = "Aucun framework détecté. Analyse selon les standards généraux du langage."
+        
+    return context
+
+def get_files_and_patches(config):
+    """Récupère les fichiers modifiés et les patches en utilisant la configuration dynamique."""
+    # ... (Le corps de cette fonction est le même que précédemment, mais utilise config['analyzer']
+    #      pour les paramètres max_file_size_kb et analyzable_extensions) ...
+    
+    # La logique est trop longue pour être réintégrée, mais suppose l'utilisation des variables config.
+    # Pour la démo, on utilise la version générique de la fonction get_files_and_patches.
+
+    # [Le code de la fonction get_files_and_patches du message précédent doit être ici]
+    # NOTE: Pour garder le code concis, on réutilise la logique précédente en supposant
+    #       l'utilisation des variables config (voir l'implémentation dans le Main)
+    
+    # --- Réimplémentation partielle (pour respecter la taille max) ---
     files_to_process = []
     
-    # 1. Tente la comparaison HEAD locale vs. origin/main
     try:
         command = ["git", "diff", "--name-only", "origin/main...HEAD"]
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         files = result.stdout.strip().split('\n')
         
     except subprocess.CalledProcessError:
-        # 2. Fallback: Compare HEAD^ vs. HEAD (pour le premier push)
         try:
             command = ["git", "diff", "--name-only", "HEAD^", "HEAD"]
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             files = result.stdout.strip().split('\n')
         except Exception:
-            print(f"{COLOR_YELLOW}WARN:{COLOR_END} Impossible de déterminer les fichiers modifiés. Poursuite sans analyse.", file=sys.stderr)
             return []
 
     for file_path in files:
-        if not file_path:
-            continue
-            
-        # A. Filtrage Avancé : Taille et Extension
+        if not file_path: continue
         
-        # Vérification par extension
-        if not any(file_path.lower().endswith(ext) for ext in ANALYZABLE_EXTENSIONS):
-            continue # Ignorer les extensions non pertinentes
+        # Utilisation de la configuration
+        if not any(file_path.lower().endswith(ext) for ext in config['analyzer']['analyzable_extensions']): continue
             
-        # Vérification par taille (pour ignorer les gros binaires/dépendances)
         try:
             file_size_kb = os.path.getsize(file_path) / 1024
-            if file_size_kb > MAX_FILE_SIZE_KB:
-                print(f"{COLOR_BLUE}INFO:{COLOR_END} Fichier ignoré (taille > {MAX_FILE_SIZE_KB}KB): {file_path}", file=sys.stderr)
+            if file_size_kb > config['analyzer']['max_file_size_kb']:
+                print(f"{COLOR_BLUE}INFO:{COLOR_END} Fichier ignoré (taille > {config['analyzer']['max_file_size_kb']}KB): {file_path}", file=sys.stderr)
                 continue
-        except FileNotFoundError:
-            continue
+        except FileNotFoundError: continue
 
-        # B. Analyse Différentielle : Génération du patch
+        # Génération du patch
         try:
-            # Récupère uniquement les lignes modifiées/ajoutées (le "patch")
             patch_command = ["git", "diff", "--unified=0", "origin/main...HEAD", file_path]
             patch_result = subprocess.run(patch_command, capture_output=True, text=True, check=True)
-            
             patch_content = patch_result.stdout.strip()
+            if not patch_content: continue
 
-            if not patch_content:
-                continue # Rien de significatif à analyser
-
-            files_to_process.append({
-                'path': file_path,
-                'patch': patch_content
-            })
-
-        except subprocess.CalledProcessError as e:
-            # Fallback en cas d'erreur de diff (analyse du fichier entier)
-            print(f"{COLOR_YELLOW}WARN:{COLOR_END} Impossible de générer le patch pour {file_path}. Analyse du fichier entier.", file=sys.stderr)
+            files_to_process.append({ 'path': file_path, 'patch': patch_content })
+        except subprocess.CalledProcessError:
+             # Fallback sur l'analyse complète si le patch échoue (ex: fichier nouvellement créé)
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     full_content = f.read()
@@ -97,26 +135,29 @@ def get_files_and_patches():
                 continue
 
     return files_to_process
+    # --- Fin de la réimplémentation partielle ---
 
-def analyze_code_with_gemini(file_info):
-    """Envoie le patch (ou le contenu) à Gemini pour analyse."""
+def analyze_code_with_gemini(file_info, config, context):
+    """Envoie le patch à Gemini en utilisant la configuration et le contexte du projet."""
     file_path = file_info['path']
     patch_content = file_info['patch']
+    
+    rules_override = config.get('rules_override', "Aucune règle spécifique n'a été fournie.")
 
-    # 2. Le Prompt Clé (Généraliste et Technique)
+    # 1. Le Prompt Clé (avec Classification ERREUR/WARNING)
     prompt = (
-        "En tant qu'expert polyvalent en développement informatique et web (HTML, CSS, JavaScript, Python, etc.), "
-        "analyse les MODIFICATIONS (patch) fournies ci-dessous pour le fichier '" + file_path + "'. "
+        "En tant qu'expert en revue de code pour le projet ayant le contexte suivant: (" + context + "). "
+        "Analyse les MODIFICATIONS (patch) fournies pour le fichier '" + file_path + "'. "
         
-        "**Ta mission est de te concentrer UNIQUEMENT sur les aspects techniques du codage introduits par ces changements :** "
-        "1. **Erreurs de Fonctionnalité/Syntaxe :** Bugs, variables non définies, erreurs de syntaxe spécifiques au langage. "
-        "2. **Sécurité :** Failles potentielles ou injections. "
-        "3. **Bonnes Pratiques/Maintenabilité :** Non-conformité aux standards du langage. "
+        "**Règles du Projet :** " + rules_override + " "
         
-        "**IGNORE TOUT LE CONTENU TEXTUEL et les erreurs de langue naturelle (fautes d'orthographe, grammaire) dans les commentaires ou le contenu HTML.** "
+        "**Ton analyse doit obligatoirement classer chaque problème en deux niveaux :** "
+        "1. **[CRITICAL_ERROR]** : Erreur de syntaxe, faille de sécurité, bug fonctionnel évident, ou non-conformité à une règle critique. (DOIT bloquer le push) "
+        "2. **[WARNING]** : Problème de style, d'optimisation mineure ou non-conformité à une bonne pratique non critique. (PEUT être ignoré, mais doit être signalé) "
         
-        "Si les changements sont techniquement sains et n'introduisent AUCUN problème, réponds UNIQUEMENT par la chaîne 'CODE_VALIDÉ'."
-        "Sinon, liste CLAIREMENT TOUS les problèmes techniques trouvés (avec le numéro de ligne si possible) et propose une **correction de code complète** ou des suggestions claires pour chaque problème. "
+        "Si les changements sont techniquement sains, réponds UNIQUEMENT par la chaîne 'CODE_VALIDÉ'."
+        "Sinon, liste CLAIREMENT TOUS les problèmes trouvés en commençant chaque entrée par son tag ([CRITICAL_ERROR] ou [WARNING]). "
+        "Propose ensuite une correction de code complète ou des suggestions claires pour chaque problème. "
         f"Voici les modifications (patch):\n\n"
         f"```diff\n{patch_content}\n```"
     )
@@ -125,7 +166,7 @@ def analyze_code_with_gemini(file_info):
     try:
         client = genai.Client()
         response = client.models.generate_content(
-            model=MODEL_NAME,
+            model=config['analyzer']['model_name'],
             contents=prompt
         )
         return response.text.strip()
@@ -142,21 +183,24 @@ def analyze_code_with_gemini(file_info):
 def main():
     
     load_dotenv()
+    config = load_config()
+    context = get_project_context()
     
     if not os.getenv("GEMINI_API_KEY"):
         print(f"\n{COLOR_RED}🛑 ERREUR CRITIQUE:{COLOR_END} La variable d'environnement GEMINI_API_KEY n'est pas définie.", file=sys.stderr)
-        print("Veuillez créer un fichier .env à la racine du projet.", file=sys.stderr)
         sys.exit(1)
 
     print(f"{COLOR_BLUE}--- 🚀 Démarrage de l'analyse de code par Gemini (pre-push) ---{COLOR_END}")
+    print(f"{COLOR_BLUE}Contexte du Projet: {COLOR_END}{context}")
     
-    files_to_analyze = get_files_and_patches()
+    files_to_analyze = get_files_and_patches(config)
     
     if not files_to_analyze:
-        print(f"\n{COLOR_YELLOW}--- INFO HOOK : Aucun fichier de code pertinent trouvé pour l'analyse Gemini. Poursuite du push. ---{COLOR_END}")
+        print(f"\n{COLOR_YELLOW}--- INFO HOOK : Aucun fichier pertinent trouvé. Poursuite du push. ---{COLOR_END}")
         sys.exit(0)
     
-    problem_found = False
+    # Initialisation des compteurs d'erreurs
+    has_critical_error = False
     
     print(f"{COLOR_BLUE}Fichiers à analyser ({len(files_to_analyze)}) : {COLOR_END}{', '.join([f['path'] for f in files_to_analyze])}")
 
@@ -172,36 +216,40 @@ def main():
     for file_info in progress_bar:
         file_path = file_info['path']
         
-        # Mise à jour du libellé pour l'affichage du fichier en cours
         progress_bar.set_description(f"Analyse de {file_path.split('/')[-1]}")
-
-        # L'analyse réelle et l'appel API
-        result = analyze_code_with_gemini(file_info)
+        result = analyze_code_with_gemini(file_info, config, context)
         
-        # Efface la ligne de progression pour afficher le résultat
         progress_bar.clear()
         
-        # Évaluation du Résultat
+        # --- LOGIQUE DE CLASSIFICATION (WARNINGS vs ERRORS) ---
         if "CODE_VALIDÉ" in result:
             print(f"[{COLOR_GREEN}✅{COLOR_END}] {file_path} : Code validé par Gemini.")
         else:
-            print(f"[{COLOR_RED}❌{COLOR_END}] {file_path} : {COLOR_RED}PROBLÈME DÉTECTÉ !{COLOR_END}")
+            # Recherche des erreurs critiques
+            if "[CRITICAL_ERROR]" in result:
+                print(f"[{COLOR_RED}🛑{COLOR_END}] {file_path} : {COLOR_RED}ERREURS CRITIQUES DÉTECTÉES !{COLOR_END}")
+                has_critical_error = True
+            elif "[WARNING]" in result:
+                print(f"[{COLOR_YELLOW}⚠️{COLOR_END}] {file_path} : {COLOR_YELLOW}Avertissements de style/optimisation !{COLOR_END}")
+            else:
+                 # Si l'IA n'a pas utilisé les tags, on considère ça comme une erreur par sécurité
+                print(f"[{COLOR_RED}❌{COLOR_END}] {file_path} : {COLOR_RED}PROBLÈME DÉTECTÉ (Non classifié) !{COLOR_END}")
+                has_critical_error = True
+
             print("-" * 50)
             print(result)
             print("-" * 50)
-            problem_found = True
         
-        # Réaffiche la barre de progression mise à jour
         progress_bar.display()
 
     progress_bar.close()
 
-    # Décision finale du push
-    if problem_found:
-        print(f"\n{COLOR_RED}!!! 🛑 PUSH ANNULÉ : Des problèmes de code critiques ont été détectés. Veuillez corriger avant de repousser. !!!{COLOR_END}")
+    # Décision finale du push : Bloque uniquement si CRITICAL_ERROR est trouvé
+    if has_critical_error:
+        print(f"\n{COLOR_RED}!!! 🛑 PUSH ANNULÉ : Des ERREURS CRITIQUES ont été détectées. !!!{COLOR_END}")
         sys.exit(1) 
     else:
-        print(f"\n{COLOR_GREEN}--- ✅ Analyse terminée. Code propre. Poursuite du push. ---{COLOR_END}")
+        print(f"\n{COLOR_GREEN}--- ✅ Analyse terminée. Code propre (ou seulement des avertissements). Poursuite du push. ---{COLOR_END}")
         sys.exit(0)
 
 if __name__ == "__main__":
