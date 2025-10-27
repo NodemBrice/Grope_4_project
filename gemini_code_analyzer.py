@@ -70,22 +70,13 @@ def analyze_code_with_gemini(file_path):
 
     # 2. Le Prompt Clé MODIFIÉ (Plus Strict) pour Gemini
     prompt = (
-        "En tant qu'expert polyvalent en développement informatique et web (HTML, CSS, JavaScript, Python, etc.), "
-        "analyse le code contenu dans le fichier '" + file_path + "'. "
-        
-        "**Ta mission est de te concentrer UNIQUEMENT sur les aspects techniques du codage :** "
-        "1. **Erreurs de Fonctionnalité/Syntaxe :** Bugs, variables non définies, boucles infinies, erreurs de syntaxe spécifiques au langage. "
-        "2. **Sécurité :** Failles de sécurité potentielles (injections SQL, XSS, fuite d'informations sensibles). "
-        "3. **Performance :** Code inefficace ou gourmand en ressources. "
-        "4. **Bonnes Pratiques/Maintenabilité :** Non-conformité aux standards du langage, complexité excessive. "
-        
-        "**IGNORE TOUT LE CONTENU TEXTUEL et les erreurs de langue naturelle (fautes d'orthographe, grammaire, style) dans les chaînes de caractères, les commentaires ou le contenu HTML.** "
-        
-        "Si le code est techniquement sain et ne contient AUCUN problème dans les catégories ci-dessus, réponds UNIQUEMENT par la chaîne 'CODE_VALIDÉ'."
-        "Sinon, liste CLAIREMENT TOUS les problèmes techniques trouvés (avec le numéro de ligne si possible) et propose une **correction de code complète** pour chaque problème. "
-        f"Voici le code:\n\n"
-        f"```\n{code_content}\n```"
-    )
+    "En tant qu'expert en revue de code, analyse le contenu suivant du fichier '" + file_path + "'. "
+    "Recherche les erreurs de logique, les failles de sécurité, les problèmes de performance et les non-conformités aux bonnes pratiques de ce langage. "
+    "Si le code est parfait, réponds UNIQUEMENT par la chaîne 'CODE_VALIDÉ'."
+    "Sinon, liste clairement les problèmes trouvés (avec le numéro de ligne si possible) et propose une **correction de code complète** pour chaque problème. "
+    "Voici le code:\n\n"
+    f"```\n{code_content}\n```"
+)
     
     # 3. Appel à l'API
     try:
