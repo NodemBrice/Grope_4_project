@@ -3,62 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KEYCE Informatique - Contact</title>
+    <meta name="description" content="Contactez KEYCE pour toute question sur nos formations, admissions ou mobilité internationale">
+    <title>Contact - KEYCE Informatique</title>
     <link rel="icon" href="images/favicon.png" type="image/png">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
         <div class="container">
-            <img src="images/logo.png" alt="Logo de l'école" class="logo">
+            <img src="images/logo.png" alt="Logo KEYCE" class="logo">
             <nav id="nav-menu">
                 <ul>
                     <li><a href="index.html">Accueil</a></li>
                     <li><a href="a-propos.html">À propos</a></li>
                     <li><a href="programmes.html">Programmes</a></li>
-Lowe
-                    <li><a href="international.html">Mobilité a prix reduit</a></li>
+                    <li><a href="international.html">International</a></li>
                     <li><a href="contact.html">Contact</a></li>
-
- main
                 </ul>
             </nav>
-            <button id="menu-toggle">☰</button>
+            <button id="menu-toggle" aria-label="Menu de navigation">☰</button>
         </div>
     </header>
 
     <main>
- main
-       
         <section class="contact-section">
-            <div class="overlay"></div>
             <div class="contact-container">
+                <!-- Improved contact form with better professional content -->
                 <h1>Contactez-nous</h1>
-                <p>Une question, un projet ou une demande d’inscription ?  
-                Remplissez le formulaire ci-dessous et notre équipe vous répondra rapidement.</p>
+                <p>Une question sur nos formations, les admissions ou la mobilité internationale ? Remplissez le formulaire ci-dessous et notre équipe vous répondra dans les plus brefs délais.</p>
 
-                <form id="contact-form" action="mailto:info@ecole-informatique.com" method="post" enctype="text/plain">
+                <form id="contact-form" action="mailto:contact@keyce-informatique.com" method="post" enctype="text/plain">
                     <div class="form-group">
-                        <label for="name">Nom</label>
-                        <input type="text" id="name" name="name" placeholder="Entrez votre nom" required>
+                        <label for="name">Nom complet *</label>
+                        <input type="text" id="name" name="name" placeholder="Votre nom et prénom" required>
                     </div>
                     <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" placeholder="votre@email.com" required>
+                        <label for="email">Adresse email *</label>
+                        <input type="email" id="email" name="email" placeholder="votre.email@exemple.com" required>
                     </div>
                     <div class="form-group">
-                        <label for="message">Message</label>
-                        <textarea id="message" name="message" rows="5" placeholder="Votre message ici..." required></textarea>
+                        <label for="phone">Téléphone</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+237 6XX XX XX XX">
                     </div>
-                    <button type="submit" class="btn-primary">Envoyer</button>
+                    <div class="form-group">
+                        <label for="subject">Sujet de votre demande *</label>
+                        <select id="subject" name="subject" required style="width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em; font-family: inherit;">
+                            <option value="">Sélectionnez un sujet</option>
+                            <option value="admission">Demande d'admission</option>
+                            <option value="programmes">Informations sur les programmes</option>
+                            <option value="international">Mobilité internationale</option>
+                            <option value="autre">Autre question</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Votre message *</label>
+                        <textarea id="message" name="message" rows="6" placeholder="Décrivez votre demande en détail..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Envoyer le message</button>
                 </form>
+
+                <div style="margin-top: 50px; padding-top: 40px; border-top: 2px solid #e0e0e0;">
+                    <h3 style="color: #0066cc; margin-bottom: 20px; text-align: center;">Autres Moyens de Contact</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; text-align: center;">
+                        <div>
+                            <strong style="color: #0066cc;">📧 Email</strong>
+                            <p style="margin-top: 8px;">contact@keyce-informatique.com</p>
+                        </div>
+                        <div>
+                            <strong style="color: #0066cc;">📞 Téléphone</strong>
+                            <p style="margin-top: 8px;">+237 6XX XX XX XX</p>
+                        </div>
+                        <div>
+                            <strong style="color: #0066cc;">📍 Adresse</strong>
+                            <p style="margin-top: 8px;">Douala, Cameroun</p>
+                        </div>
+                    </div>
+                </div>
             </div>
- Lowe
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2025 KEYCE Informatique. Tous droits réservés.</p>
+        <div class="container">
+            <p>&copy; 2025 KEYCE Informatique. Tous droits réservés.</p>
+            <ul class="social-links">
+                <li><a href="#" aria-label="Facebook">Facebook</a></li>
+                <li><a href="#" aria-label="LinkedIn">LinkedIn</a></li>
+                <li><a href="#" aria-label="Twitter">Twitter</a></li>
+                <li><a href="#" aria-label="Instagram">Instagram</a></li>
+            </ul>
+        </div>
     </footer>
 
     <script src="js/script.js"></script>
