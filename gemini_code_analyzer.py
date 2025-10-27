@@ -70,10 +70,19 @@ def analyze_code_with_gemini(file_path):
 
     # 2. Le Prompt Clé MODIFIÉ (Plus Strict) pour Gemini
     prompt = (
-        "En tant qu'expert en revue de code strict (HTML/CSS/JS/Python), analyse le fichier '" + file_path + "'. "
-        "Recherche OBLIGATOIREMENT: 1) Toute **erreur de syntaxe** (balise mal orthographiée, variable non définie, etc.). 2) Toute **injection de code** d'un autre langage (ex: 'printf', PHP) dans le fichier. 3) Les failles de sécurité et les mauvaises pratiques. "
-        "Si le code est absolument parfait et ne contient **aucune erreur de syntaxe ou de bonnes pratiques**, réponds UNIQUEMENT par la chaîne 'CODE_VALIDÉ'."
-        "Sinon, liste CLAIREMENT TOUS les problèmes trouvés (avec le numéro de ligne si possible) et propose une **correction de code complète** pour chaque problème. "
+        "En tant qu'expert polyvalent en développement informatique et web (HTML, CSS, JavaScript, Python, etc.), "
+        "analyse le code contenu dans le fichier '" + file_path + "'. "
+        
+        "**Ta mission est de te concentrer UNIQUEMENT sur les aspects techniques du codage :** "
+        "1. **Erreurs de Fonctionnalité/Syntaxe :** Bugs, variables non définies, boucles infinies, erreurs de syntaxe spécifiques au langage. "
+        "2. **Sécurité :** Failles de sécurité potentielles (injections SQL, XSS, fuite d'informations sensibles). "
+        "3. **Performance :** Code inefficace ou gourmand en ressources. "
+        "4. **Bonnes Pratiques/Maintenabilité :** Non-conformité aux standards du langage, complexité excessive. "
+        
+        "**IGNORE TOUT LE CONTENU TEXTUEL et les erreurs de langue naturelle (fautes d'orthographe, grammaire, style) dans les chaînes de caractères, les commentaires ou le contenu HTML.** "
+        
+        "Si le code est techniquement sain et ne contient AUCUN problème dans les catégories ci-dessus, réponds UNIQUEMENT par la chaîne 'CODE_VALIDÉ'."
+        "Sinon, liste CLAIREMENT TOUS les problèmes techniques trouvés (avec le numéro de ligne si possible) et propose une **correction de code complète** pour chaque problème. "
         f"Voici le code:\n\n"
         f"```\n{code_content}\n```"
     )
