@@ -1,12 +1,12 @@
 # gemini_code_analyzer.py
 
-import os
+import os # FIX CRITIQUE: Ajout de l'import os
 import sys
 import subprocess
 import json
 import yaml 
 import copy 
-import hashlib # Ajout pour la gestion du cache
+import hashlib 
 from google import genai
 from google.genai.errors import APIError
 from dotenv import load_dotenv
@@ -73,7 +73,6 @@ def load_config():
 def get_project_context():
     """Détecte les frameworks principaux pour fournir du contexte à Gemini."""
     context = ""
-    # ... (fonction inchangée, utilise la correction pour la gestion des exceptions)
     if os.path.exists('package.json'):
         try:
             with open('package.json', 'r') as f:
@@ -98,20 +97,19 @@ def get_project_context():
 # --- Fonctions de Cache ---
 
 def load_cache():
-    """Charge le cache depuis le fichier JSON."""
+    """Charge le cache depuis le fichier JSON. Nécessite os.path.exists."""
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, 'r') as f:
                 return json.load(f)
         except (json.JSONDecodeError, IOError):
-            # En cas d'erreur de lecture/fichier corrompu, on ignore l'ancien cache
             return {}
     return {}
 
 def save_cache(cache_data):
     """Sauvegarde les données de cache dans le fichier JSON."""
     try:
-        # Assurez-vous que le fichier de cache est ignoré par Git
+        # Note : Le fichier de cache (.gemini_cache.json) DOIT être ignoré par Git via .gitignore
         with open(CACHE_FILE, 'w') as f:
             json.dump(cache_data, f, indent=4)
     except IOError as e:
@@ -125,7 +123,7 @@ def get_file_hash(file_path):
             buf = f.read()
             hasher.update(buf)
         return hasher.hexdigest()
-    except Exception:
+    except (IOError, OSError): # FIX WARNING: Gestion spécifique des exceptions d'E/S
         return None
 
 # --- Fonctions d'Analyse ---
@@ -137,7 +135,6 @@ def get_files_and_patches(config):
     """
     files_to_process = []
     
-    # ... (le corps de cette fonction utilise le fallback robuste corrigé) ...
     try:
         command = ["git", "diff", "--name-only", "origin/main...HEAD"]
         result = subprocess.run(command, capture_output=True, text=True, check=True)
@@ -203,13 +200,16 @@ def get_files_and_patches(config):
 
 def analyze_code_with_gemini(file_info, config, context, cache):
     """Analyse le patch avec Gemini, en utilisant le cache si possible."""
-    file_path = file_info['path']
+    
+    # FIX CRITIQUE: Extraction du chemin du fichier depuis file_info
+    file_path = file_info['path'] 
+    
     patch_content = file_info['patch']
     current_hash = get_file_hash(file_path)
     
     # 1. VÉRIFICATION DU CACHE ♻️
     if current_hash and file_path in cache and cache[file_path]['sha256'] == current_hash and cache[file_path]['status'] == 'CODE_VALIDÉ':
-        return "CODE_VALIDÉ", True # Validation réutilisée
+        return "CODE_VALIDÉ", True 
 
     # 2. AUCUN CACHE ou CACHE INVALIDE: Procède à l'analyse Gemini
     
@@ -217,6 +217,7 @@ def analyze_code_with_gemini(file_info, config, context, cache):
 
     prompt = (
         "En tant qu'expert en revue de code pour le projet ayant le contexte suivant: (" + context + "). "
+        # ... (reste du prompt inchangé) ...
         "Analyse les MODIFICATIONS (patch) fournies pour le fichier '" + file_path + "'. "
         
         "**Règles du Projet :** " + rules_override + " "
@@ -243,14 +244,12 @@ def analyze_code_with_gemini(file_info, config, context, cache):
         
         # 3. MISE À JOUR DU CACHE
         if "CODE_VALIDÉ" in result:
-            # Met en cache uniquement les résultats valides
             cache[file_path] = {'sha256': current_hash, 'status': 'CODE_VALIDÉ'}
         else:
-            # Supprime du cache pour forcer une ré-analyse après correction
             if file_path in cache:
                  del cache[file_path]
             
-        return result, False # Pas en cache
+        return result, False
         
     except APIError as e:
         return f"{COLOR_RED}Erreur API Gemini:{COLOR_END} {e}. Vérifiez votre clé API ou votre quota.", False
@@ -267,7 +266,6 @@ def main():
     config = load_config()
     context = get_project_context()
     
-    # NOUVEAU: Chargement du cache
     cache = load_cache() 
     
     if not os.getenv("GEMINI_API_KEY"):
@@ -298,10 +296,10 @@ def main():
     
     # Boucle d'analyse
     for file_info in progress_bar:
-        file_path = file_info['path']
+        # FIX CRITIQUE: Extraction du chemin du fichier depuis file_info
+        file_path = file_info['path'] 
         
         progress_bar.set_description(f"Analyse de {file_path.split('/')[-1]}")
-        # NOUVEAU: Passage de l'objet cache
         result, is_cached = analyze_code_with_gemini(file_info, config, context, cache) 
         
         progress_bar.clear()
@@ -320,7 +318,7 @@ def main():
             elif "[WARNING]" in result:
                 print(f"[{COLOR_YELLOW}⚠️{COLOR_END}] {file_path} : {COLOR_YELLOW}Avertissements de style/optimisation !{COLOR_END}")
             else:
-                 # NOUVEAU: Logique de gestion de l'output non tagué (Correction de sécurité)
+                 # Logique de gestion de l'output non tagué (Correction de sécurité via la configuration)
                 is_strict = config['analyzer'].get('strict_untagged_output', False)
 
                 if is_strict:
@@ -329,7 +327,6 @@ def main():
                     has_critical_error = True # BLOQUE le push
                 else:
                     print(f"[{COLOR_YELLOW}⚠️{COLOR_END}] {file_path} : {COLOR_YELLOW}Avertissements (non classifiés, mode non strict) !{COLOR_END}")
-                    # Ne bloque pas (avertissement simple)
 
             print("-" * 50)
             print(result)
@@ -339,7 +336,6 @@ def main():
 
     progress_bar.close()
     
-    # NOUVEAU: Sauvegarde du cache
     save_cache(cache)
 
     # Décision finale du push : Bloque uniquement si CRITICAL_ERROR est trouvé
