@@ -4,12 +4,13 @@ import os
 import sys
 import subprocess
 import json
-import yaml # Nécessite 'pip install pyyaml'
-import copy # Nécessite l'importation pour deepcopy
+import yaml 
+import copy 
+import hashlib # Ajout pour la gestion du cache
 from google import genai
 from google.genai.errors import APIError
 from dotenv import load_dotenv
-from tqdm import tqdm # Nécessite 'pip install tqdm'
+from tqdm import tqdm 
 
 # --- CODES COULEUR ANSI ---
 COLOR_GREEN = '\033[92m'
@@ -20,18 +21,18 @@ COLOR_END = '\033[0m'
 
 # --- Configuration par défaut et globale ---
 CONFIG_FILE = '.geminianalyzer.yml'
+CACHE_FILE = '.gemini_cache.json' # Fichier de cache local
 
-# Nouvelle fonction utilitaire pour la fusion profonde
+# --- Fonctions de Configuration et d'Utilité ---
+
 def deep_merge_dicts(base, override):
     """
     Fusionne récursivement le dictionnaire 'override' dans le dictionnaire 'base'.
     Les valeurs de 'override' prévalent en cas de conflit.
     """
     for key, value in override.items():
-        # Si la valeur est un dictionnaire et existe aussi dans la base comme dictionnaire, on merge
         if isinstance(value, dict) and key in base and isinstance(base[key], dict):
             base[key] = deep_merge_dicts(base[key], value)
-        # Sinon, on remplace ou ajoute la clé/valeur
         else:
             base[key] = value
     return base
@@ -42,7 +43,8 @@ def load_config():
         'analyzer': {
             'model_name': 'gemini-2.5-flash',
             'max_file_size_kb': 500,
-            # Correction WARNING: Rétablissement d'une liste d'extensions par défaut complète
+            # NOUVEAU: Si True, une sortie non taguée de l'IA bloque le push.
+            'strict_untagged_output': False, 
             'analyzable_extensions': ['.py', '.js', '.ts', '.jsx', '.tsx', '.html', '.css', '.scss', '.java', '.c', '.cpp', '.php', '.go', '.rb', '.sh', '.json', '.yml', '.yaml'],
         },
         'rules_override': "Aucune règle spécifique n'a été fournie."
@@ -52,7 +54,6 @@ def load_config():
         with open(CONFIG_FILE, 'r') as f:
             user_config = yaml.safe_load(f)
         
-        # Correction CRITICAL_ERROR: Utilisation de la copie profonde pour fusionner la config
         merged_config = copy.deepcopy(default_config)
         
         if user_config and isinstance(user_config, dict):
@@ -62,7 +63,7 @@ def load_config():
     except FileNotFoundError:
         print(f"{COLOR_YELLOW}WARN:{COLOR_END} Fichier de configuration '{CONFIG_FILE}' non trouvé. Utilisation des paramètres par défaut.", file=sys.stderr)
         return default_config
-    except yaml.YAMLError as e: # Capture spécifique des erreurs de parsing
+    except yaml.YAMLError as e: 
         print(f"{COLOR_RED}ERREUR CONFIG:{COLOR_END} Erreur de lecture YAML: {e}. Utilisation des paramètres par défaut.", file=sys.stderr)
         return default_config
     except Exception as e:
@@ -72,13 +73,11 @@ def load_config():
 def get_project_context():
     """Détecte les frameworks principaux pour fournir du contexte à Gemini."""
     context = ""
-    
-    # 1. Contexte Node/Web (package.json)
+    # ... (fonction inchangée, utilise la correction pour la gestion des exceptions)
     if os.path.exists('package.json'):
         try:
             with open('package.json', 'r') as f:
                 data = json.load(f)
-            
             dependencies = list(data.get('dependencies', {}).keys())
             
             if 'react' in dependencies or 'next' in dependencies:
@@ -87,18 +86,49 @@ def get_project_context():
                 context += "Le projet est un projet Node.js/Express. Les bonnes pratiques du serveur (gestion des routes, sécurité) sont prioritaires."
             else:
                 context += f"Le projet utilise Node.js avec les dépendances principales: {', '.join(dependencies[:5])}."
-
-        except (json.JSONDecodeError, IOError): # Correction WARNING: Gestion spécifique des exceptions
+        except (json.JSONDecodeError, IOError):
             pass 
-
-    # 2. Contexte Python (requirements.txt) - peut être étendu
     if os.path.exists('requirements.txt'):
         context += " Le projet utilise Python. Les règles de la PEP 8 et l'efficacité du code sont importantes."
-        
     if not context:
         context = "Aucun framework détecté. Analyse selon les standards généraux du langage."
-        
     return context
+
+
+# --- Fonctions de Cache ---
+
+def load_cache():
+    """Charge le cache depuis le fichier JSON."""
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, 'r') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            # En cas d'erreur de lecture/fichier corrompu, on ignore l'ancien cache
+            return {}
+    return {}
+
+def save_cache(cache_data):
+    """Sauvegarde les données de cache dans le fichier JSON."""
+    try:
+        # Assurez-vous que le fichier de cache est ignoré par Git
+        with open(CACHE_FILE, 'w') as f:
+            json.dump(cache_data, f, indent=4)
+    except IOError as e:
+        print(f"{COLOR_RED}ERREUR CACHE:{COLOR_END} Impossible de sauvegarder le cache: {e}", file=sys.stderr)
+
+def get_file_hash(file_path):
+    """Génère le hash SHA256 du contenu d'un fichier."""
+    hasher = hashlib.sha256()
+    try:
+        with open(file_path, 'rb') as f: # Lire en mode binaire
+            buf = f.read()
+            hasher.update(buf)
+        return hasher.hexdigest()
+    except Exception:
+        return None
+
+# --- Fonctions d'Analyse ---
 
 def get_files_and_patches(config):
     """
@@ -107,7 +137,7 @@ def get_files_and_patches(config):
     """
     files_to_process = []
     
-    # 1. Détermine les fichiers modifiés (utilisation de 'origin/main...HEAD' ou 'HEAD^')
+    # ... (le corps de cette fonction utilise le fallback robuste corrigé) ...
     try:
         command = ["git", "diff", "--name-only", "origin/main...HEAD"]
         result = subprocess.run(command, capture_output=True, text=True, check=True)
@@ -122,8 +152,7 @@ def get_files_and_patches(config):
 
     for file_path in files:
         if not file_path: continue
-            
-        # 2. Filtrage Avancé : Taille et Extension
+        
         analyzable_exts = config['analyzer']['analyzable_extensions']
         max_size_kb = config['analyzer']['max_file_size_kb']
 
@@ -136,10 +165,8 @@ def get_files_and_patches(config):
                 continue
         except FileNotFoundError: continue
 
-        # 3. Analyse Différentielle : Tentative de patch puis Fallback (Correction CRITICAL_ERROR)
+        # Analyse Différentielle : Tentative de patch puis Fallback
         try:
-            # Tente de récupérer uniquement les lignes modifiées/ajoutées (le "patch")
-            # Utiliser la comparaison 'HEAD^' si le référentiel est très jeune
             patch_command = ["git", "diff", "--unified=0", "HEAD^", "--", file_path]
             patch_result = subprocess.run(patch_command, capture_output=True, text=True, check=True, errors='ignore')
             patch_content = patch_result.stdout.strip()
@@ -147,20 +174,17 @@ def get_files_and_patches(config):
             if patch_content:
                 files_to_process.append({ 'path': file_path, 'patch': patch_content })
             else:
-                # Si le patch est vide, c'est peut-être un nouveau fichier. Tente d'analyser le contenu complet.
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     full_content = f.read()
                 
-                if full_content.strip(): # S'assure que le fichier n'est pas vide
+                if full_content.strip():
                     files_to_process.append({ 
                         'path': file_path, 
                         'patch': full_content 
                     })
                     print(f"{COLOR_YELLOW}WARN:{COLOR_END} Pas de patch détecté pour {file_path}. Analyse complète du fichier.", file=sys.stderr)
 
-
         except subprocess.CalledProcessError:
-             # Si git diff échoue complètement (référentiel très jeune ou autre problème), on analyse le fichier entier
             try:
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     full_content = f.read()
@@ -172,18 +196,25 @@ def get_files_and_patches(config):
                     })
                     print(f"{COLOR_YELLOW}WARN:{COLOR_END} Impossible de générer le patch pour {file_path}. Analyse du fichier entier.", file=sys.stderr)
             except Exception:
-                continue # Ignore le fichier s'il ne peut être lu
+                continue 
 
     return files_to_process
 
-def analyze_code_with_gemini(file_info, config, context):
-    """Envoie le patch à Gemini en utilisant la configuration et le contexte du projet."""
+
+def analyze_code_with_gemini(file_info, config, context, cache):
+    """Analyse le patch avec Gemini, en utilisant le cache si possible."""
     file_path = file_info['path']
     patch_content = file_info['patch']
+    current_hash = get_file_hash(file_path)
+    
+    # 1. VÉRIFICATION DU CACHE ♻️
+    if current_hash and file_path in cache and cache[file_path]['sha256'] == current_hash and cache[file_path]['status'] == 'CODE_VALIDÉ':
+        return "CODE_VALIDÉ", True # Validation réutilisée
+
+    # 2. AUCUN CACHE ou CACHE INVALIDE: Procède à l'analyse Gemini
     
     rules_override = config.get('rules_override', "Aucune règle spécifique n'a été fournie.")
 
-    # 1. Le Prompt Clé (avec Classification ERREUR/WARNING)
     prompt = (
         "En tant qu'expert en revue de code pour le projet ayant le contexte suivant: (" + context + "). "
         "Analyse les MODIFICATIONS (patch) fournies pour le fichier '" + file_path + "'. "
@@ -208,12 +239,23 @@ def analyze_code_with_gemini(file_info, config, context):
             model=config['analyzer']['model_name'],
             contents=prompt
         )
-        return response.text.strip()
+        result = response.text.strip()
+        
+        # 3. MISE À JOUR DU CACHE
+        if "CODE_VALIDÉ" in result:
+            # Met en cache uniquement les résultats valides
+            cache[file_path] = {'sha256': current_hash, 'status': 'CODE_VALIDÉ'}
+        else:
+            # Supprime du cache pour forcer une ré-analyse après correction
+            if file_path in cache:
+                 del cache[file_path]
+            
+        return result, False # Pas en cache
         
     except APIError as e:
-        return f"{COLOR_RED}Erreur API Gemini:{COLOR_END} {e}. Vérifiez votre clé API ou votre quota."
+        return f"{COLOR_RED}Erreur API Gemini:{COLOR_END} {e}. Vérifiez votre clé API ou votre quota.", False
     except Exception as e:
-        return f"{COLOR_RED}Erreur inattendue:{COLOR_END} {e}"
+        return f"{COLOR_RED}Erreur inattendue:{COLOR_END} {e}", False
 
 # --------------------------------------------------------------------------------
 # MAIN
@@ -225,8 +267,9 @@ def main():
     config = load_config()
     context = get_project_context()
     
-    # Correction WARNING: Rétablissement d'une instruction claire pour la clé API
-    # Note: La variable d'environnement doit être GEMINI_API_KEY et non GOOGLE_API_KEY
+    # NOUVEAU: Chargement du cache
+    cache = load_cache() 
+    
     if not os.getenv("GEMINI_API_KEY"):
         print(f"\n{COLOR_RED}🛑 ERREUR CRITIQUE:{COLOR_END} La variable d'environnement GEMINI_API_KEY n'est pas définie.", file=sys.stderr)
         print(f"Veuillez la définir (par exemple, dans un fichier .env à la racine du projet).", file=sys.stderr)
@@ -245,7 +288,6 @@ def main():
     
     print(f"{COLOR_BLUE}Fichiers à analyser ({len(files_to_analyze)}) : {COLOR_END}{', '.join([f['path'] for f in files_to_analyze])}")
 
-    # Utilisation de tqdm pour la barre de progression (UX Améliorée)
     progress_bar = tqdm(
         files_to_analyze, 
         desc=f"{COLOR_BLUE}Analyse en cours{COLOR_END}", 
@@ -254,16 +296,21 @@ def main():
         bar_format="{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]"
     )
     
+    # Boucle d'analyse
     for file_info in progress_bar:
         file_path = file_info['path']
         
         progress_bar.set_description(f"Analyse de {file_path.split('/')[-1]}")
-        result = analyze_code_with_gemini(file_info, config, context)
+        # NOUVEAU: Passage de l'objet cache
+        result, is_cached = analyze_code_with_gemini(file_info, config, context, cache) 
         
         progress_bar.clear()
         
-        # --- LOGIQUE DE CLASSIFICATION (WARNINGS vs ERRORS) ---
-        if "CODE_VALIDÉ" in result:
+        # Logique de gestion du cache
+        if is_cached:
+            print(f"[{COLOR_BLUE}♻️ CACHE{COLOR_END}] {file_path} : Validation réutilisée (Hash inchangé).")
+        # Logique de classification si l'analyse a été effectuée
+        elif "CODE_VALIDÉ" in result:
             print(f"[{COLOR_GREEN}✅{COLOR_END}] {file_path} : Code validé par Gemini.")
         else:
             # Recherche des erreurs critiques
@@ -273,8 +320,16 @@ def main():
             elif "[WARNING]" in result:
                 print(f"[{COLOR_YELLOW}⚠️{COLOR_END}] {file_path} : {COLOR_YELLOW}Avertissements de style/optimisation !{COLOR_END}")
             else:
-                 # Si l'IA n'a pas utilisé les tags, on considère ça comme un warning (moins bloquant que l'erreur critique)
-                print(f"[{COLOR_YELLOW}⚠️{COLOR_END}] {file_path} : {COLOR_YELLOW}Avertissements (non classifiés) !{COLOR_END}")
+                 # NOUVEAU: Logique de gestion de l'output non tagué (Correction de sécurité)
+                is_strict = config['analyzer'].get('strict_untagged_output', False)
+
+                if is_strict:
+                    print(f"[{COLOR_RED}❌{COLOR_END}] {file_path} : {COLOR_RED}PROBLÈME DÉTECTÉ (Output IA non classifié - Mode strict) !{COLOR_END}")
+                    print(f"{COLOR_RED}Le format de réponse de l'IA n'était pas respecté. Push bloqué par sécurité.{COLOR_END}")
+                    has_critical_error = True # BLOQUE le push
+                else:
+                    print(f"[{COLOR_YELLOW}⚠️{COLOR_END}] {file_path} : {COLOR_YELLOW}Avertissements (non classifiés, mode non strict) !{COLOR_END}")
+                    # Ne bloque pas (avertissement simple)
 
             print("-" * 50)
             print(result)
@@ -283,6 +338,9 @@ def main():
         progress_bar.display()
 
     progress_bar.close()
+    
+    # NOUVEAU: Sauvegarde du cache
+    save_cache(cache)
 
     # Décision finale du push : Bloque uniquement si CRITICAL_ERROR est trouvé
     if has_critical_error:
