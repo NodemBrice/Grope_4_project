@@ -1,87 +1,101 @@
-// Gestion de la cinématique intro
-document.addEventListener('DOMContentLoaded', () => {
-    // S'assurer que ces variables sont correctement définies à partir des éléments HTML
+/**
+ * Fonction utilitaire pour cacher l'overlay d'introduction et afficher le contenu principal.
+ * Cette fonction est déplacée à l'extérieur du DOMContentLoaded pour une meilleure organisation.
+ */
+const showContent = () => {
     const introOverlay = document.getElementById('intro-overlay');
-    const introVideo = document.getElementById('intro-video');
-    const skipButton = document.getElementById('skip-intro');
     const header = document.querySelector('header');
     const main = document.querySelector('main');
     const footer = document.querySelector('footer');
+    
+    // Utilisation de l'Optional Chaining (?) pour plus de concision lors de la suppression de classes.
+    // L'overlay est caché de manière définitive.
+    if (introOverlay) {
+        // Définir display: none est plus fiable que la classe 'hidden' pour un élément destiné à disparaître.
+        introOverlay.style.display = 'none'; 
+    }
+    
+    header?.classList.remove('hidden');
+    main?.classList.remove('hidden');
+    footer?.classList.remove('hidden');
+};
 
-    // Fonction pour cacher l'overlay et afficher le contenu.
-    // Cette fonction est maintenant définie dans la portée du DOMContentLoaded
-    // pour être accessible quel que soit le chemin (intro jouée ou non).
-    const showContent = () => {
-        if (introOverlay) { // Ajout d'une vérification de nullité par bonne pratique
-            introOverlay.style.display = 'none';
-        }
-        if (header) header.classList.remove('hidden');
-        if (main) main.classList.remove('hidden');
-        if (footer) footer.classList.remove('hidden');
-        
-        // Marquer comme joué pour cette session une fois le contenu affiché
-        sessionStorage.setItem('introPlayed', 'true');
-    };
+/**
+ * Fonction isolée pour gérer la logique de validation du formulaire de contact.
+ * Retourne false et empêche l'envoi si la validation échoue.
+ */
+const validateContactForm = (e) => {
+    // Récupération des valeurs en s'assurant qu'elles sont trimées
+    const name = document.getElementById("name")?.value.trim();
+    const email = document.getElementById("email")?.value.trim();
+    // Le champ message n'est pas obligatoire dans cette validation
+    // const message = document.getElementById("message")?.value.trim(); 
 
-    // Vérifier si l'intro a déjà été jouée dans cette session
-    if (sessionStorage.getItem('introPlayed') === 'true') {
-        // Si l'intro a déjà été jouée, afficher le contenu immédiatement
-        showContent();
-    } else {
-        // Si l'intro n'a PAS été jouée, alors on procède à l'affichage de la vidéo
-        
-        // À la fin de la vidéo, appeler showContent
-        if (introVideo) { // Ajout d'une vérification de nullité par bonne pratique
-            introVideo.addEventListener('ended', showContent);
-        }
+    // Vérification des champs obligatoires
+    if (!name || !email) {
+        alert("Veuillez remplir tous les champs obligatoires (Nom et Email).");
+        e.preventDefault();
+        return false;
+    }
+
+    // Validation basique de l'email
+    // Utilisation d'une regex un peu plus robuste que la version très simple
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if (!emailRegex.test(email)) {
+        alert("Veuillez entrer une adresse email valide.");
+        e.preventDefault();
+        return false;
+    }
+
+    // Si toutes les validations passent, le formulaire est envoyé
+    return true;
+};
+
+
+// -------------------------------------------------------------------------
+// Point d'entrée principal : s'assure que le DOM est complètement chargé
+// -------------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- 1. Gestion de la cinématique intro ---
+    const introVideo = document.getElementById('intro-video');
+    const skipButton = document.getElementById('skip-intro');
+
+    if (introVideo) {
+        // Exécute showContent à la fin de la vidéo
+        introVideo.addEventListener('ended', showContent);
 
         // Bouton skip
         if (skipButton) {
             skipButton.addEventListener('click', () => {
-                if (introVideo) introVideo.pause(); // Mettre en pause la vidéo si elle existe
-                showContent(); // Appeler showContent pour masquer l'overlay et marquer comme joué
+                introVideo.pause(); // Arrête la vidéo immédiatement
+                showContent();      // Affiche le contenu
             });
         }
 
-        // Pour forcer le play si besoin (sur certains navigateurs)
-        if (introVideo) { // Ajout d'une vérification de nullité par bonne pratique
-            introVideo.play().catch(error => {
-                console.log('Autoplay bloqué:', error);
-                // Optionnel: Afficher un bouton play si l'autoplay échoue
-                // ou appeler showContent() ici pour ne pas bloquer l'utilisateur
-            });
-        }
+        // Pour gérer l'autoplay bloqué
+        introVideo.play().catch(error => {
+            console.warn('Autoplay bloqué par le navigateur:', error);
+            // Ici, vous pourriez rendre le bouton 'skip' ou 'play' visible si la vidéo ne démarre pas
+        });
     }
-    const menuToggle = document.getElementById("menu-toggle")
-    const navMenu = document.getElementById("nav-menu")
+
+    // --- 2. Menu hamburger ---
+    const menuToggle = document.getElementById("menu-toggle");
+    const navMenu = document.getElementById("nav-menu");
 
     if (menuToggle && navMenu) {
         menuToggle.addEventListener("click", () => {
-            navMenu.classList.toggle("active")
-        })
+            // Bascule la classe 'active' pour afficher/cacher le menu via CSS
+            navMenu.classList.toggle("active");
+            menuToggle.classList.toggle("active"); // Optionnel : pour changer l'icône du toggle
+        });
     }
 
-    // Validation du formulaire de contact
-    const form = document.getElementById("contact-form")
+    // --- 3. Validation du formulaire de contact ---
+    const form = document.getElementById("contact-form");
     if (form) {
-        form.addEventListener("submit", (e) => {
-            const name = document.getElementById("name").value.trim()
-            const email = document.getElementById("email").value.trim()
-            const message = document.getElementById("message")?.value.trim()
-
-            if (!name || !email) {
-                alert("Veuillez remplir tous les champs obligatoires.")
-                e.preventDefault()
-                return
-            }
-
-            // Validation basique de l'email
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            if (!emailRegex.test(email)) {
-                alert("Veuillez entrer une adresse email valide.")
-                e.preventDefault()
-                return
-            }
-        })
+        // Utilise la fonction de validation isolée comme gestionnaire d'événement
+        form.addEventListener("submit", validateContactForm);
     }
 });

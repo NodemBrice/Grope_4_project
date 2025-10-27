@@ -6,7 +6,7 @@ import subprocess
 from google import genai
 from google.genai.errors import APIError
 from dotenv import load_dotenv
-from tqdm import tqdm # Importation pour la barre de progression
+from tqdm import tqdm # Nécessite 'pip install tqdm'
 
 # --- CODES COULEUR ANSI (Amélioration de l'Affichage) ---
 COLOR_GREEN = '\033[92m'
@@ -18,8 +18,8 @@ COLOR_END = '\033[0m'
 # --- Configuration ---
 MODEL_NAME = 'gemini-2.5-flash' 
 MAX_FILE_SIZE_KB = 500  # Taille maximale du fichier à analyser (500 Ko)
-# Extensions à analyser (autres seront ignorées)
-ANALYZABLE_EXTENSIONS = ('.py', '.js', '.ts', '.jsx', '.tsx', '.html', '.css', '.scss', '.java', '.c', '.cpp', '.php', '.go', '.rb', '.sh')
+# Extensions de code pertinentes pour l'analyse
+ANALYZABLE_EXTENSIONS = ('.py', '.js', '.ts', '.jsx', '.tsx', '.html', '.css', '.scss', '.java', '.c', '.cpp', '.php', '.go', '.rb', '.sh', '.json', '.yml', '.yaml')
 
 # --------------------------------------------------------------------------------
 # A. FILTRAGE AVANCÉ ET B. ANALYSE DIFFÉRENTIELLE
@@ -32,31 +32,31 @@ def get_files_and_patches():
     """
     files_to_process = []
     
+    # 1. Tente la comparaison HEAD locale vs. origin/main
     try:
-        # Compare la HEAD locale avec l'état distant connu (commits à pousser)
         command = ["git", "diff", "--name-only", "origin/main...HEAD"]
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         files = result.stdout.strip().split('\n')
         
     except subprocess.CalledProcessError:
-        # Fallback pour le premier push (pas d'origin/main encore)
+        # 2. Fallback: Compare HEAD^ vs. HEAD (pour le premier push)
         try:
             command = ["git", "diff", "--name-only", "HEAD^", "HEAD"]
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             files = result.stdout.strip().split('\n')
         except Exception:
+            print(f"{COLOR_YELLOW}WARN:{COLOR_END} Impossible de déterminer les fichiers modifiés. Poursuite sans analyse.", file=sys.stderr)
             return []
 
     for file_path in files:
         if not file_path:
             continue
             
-        # 1. Filtrage Avancé : Taille et Extension
+        # A. Filtrage Avancé : Taille et Extension
         
         # Vérification par extension
         if not any(file_path.lower().endswith(ext) for ext in ANALYZABLE_EXTENSIONS):
-            # print(f"{COLOR_BLUE}INFO:{COLOR_END} Fichier ignoré (extension non pertinente): {file_path}", file=sys.stderr)
-            continue
+            continue # Ignorer les extensions non pertinentes
             
         # Vérification par taille (pour ignorer les gros binaires/dépendances)
         try:
@@ -67,7 +67,7 @@ def get_files_and_patches():
         except FileNotFoundError:
             continue
 
-        # 2. Analyse Différentielle : Génération du patch
+        # B. Analyse Différentielle : Génération du patch
         try:
             # Récupère uniquement les lignes modifiées/ajoutées (le "patch")
             patch_command = ["git", "diff", "--unified=0", "origin/main...HEAD", file_path]
@@ -76,9 +76,7 @@ def get_files_and_patches():
             patch_content = patch_result.stdout.strip()
 
             if not patch_content:
-                # Si le fichier est listé mais que le patch est vide, c'est probablement un fichier
-                # que Git ne suit plus ou qui n'a pas été modifié de manière significative.
-                continue
+                continue # Rien de significatif à analyser
 
             files_to_process.append({
                 'path': file_path,
@@ -86,7 +84,7 @@ def get_files_and_patches():
             })
 
         except subprocess.CalledProcessError as e:
-            # Fallback en cas d'erreur de diff (comme pour un fichier nouvellement créé sans base)
+            # Fallback en cas d'erreur de diff (analyse du fichier entier)
             print(f"{COLOR_YELLOW}WARN:{COLOR_END} Impossible de générer le patch pour {file_path}. Analyse du fichier entier.", file=sys.stderr)
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
@@ -105,7 +103,7 @@ def analyze_code_with_gemini(file_info):
     file_path = file_info['path']
     patch_content = file_info['patch']
 
-    # Le prompt est maintenant basé sur le patch, pas le fichier complet
+    # 2. Le Prompt Clé (Généraliste et Technique)
     prompt = (
         "En tant qu'expert polyvalent en développement informatique et web (HTML, CSS, JavaScript, Python, etc.), "
         "analyse les MODIFICATIONS (patch) fournies ci-dessous pour le fichier '" + file_path + "'. "
@@ -118,7 +116,7 @@ def analyze_code_with_gemini(file_info):
         "**IGNORE TOUT LE CONTENU TEXTUEL et les erreurs de langue naturelle (fautes d'orthographe, grammaire) dans les commentaires ou le contenu HTML.** "
         
         "Si les changements sont techniquement sains et n'introduisent AUCUN problème, réponds UNIQUEMENT par la chaîne 'CODE_VALIDÉ'."
-        "Sinon, liste CLAIREMENT TOUS les problèmes techniques trouvés (avec le numéro de ligne si possible) et propose une **correction de code complète** pour le fichier entier ou des suggestions claires pour chaque problème. "
+        "Sinon, liste CLAIREMENT TOUS les problèmes techniques trouvés (avec le numéro de ligne si possible) et propose une **correction de code complète** ou des suggestions claires pour chaque problème. "
         f"Voici les modifications (patch):\n\n"
         f"```diff\n{patch_content}\n```"
     )
@@ -163,13 +161,19 @@ def main():
     print(f"{COLOR_BLUE}Fichiers à analyser ({len(files_to_analyze)}) : {COLOR_END}{', '.join([f['path'] for f in files_to_analyze])}")
 
     # Utilisation de tqdm pour la barre de progression (UX Améliorée)
-    progress_bar = tqdm(files_to_analyze, desc=f"{COLOR_BLUE}Analyse en cours{COLOR_END}", unit="file", ncols=100)
+    progress_bar = tqdm(
+        files_to_analyze, 
+        desc=f"{COLOR_BLUE}Analyse en cours{COLOR_END}", 
+        unit="file", 
+        ncols=100,
+        bar_format="{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]"
+    )
     
     for file_info in progress_bar:
         file_path = file_info['path']
         
-        # Mise à jour du libellé de la barre de progression
-        progress_bar.set_description(f"{COLOR_BLUE}Analyse de {file_path.split('/')[-1]}{COLOR_END}")
+        # Mise à jour du libellé pour l'affichage du fichier en cours
+        progress_bar.set_description(f"Analyse de {file_path.split('/')[-1]}")
 
         # L'analyse réelle et l'appel API
         result = analyze_code_with_gemini(file_info)
@@ -187,9 +191,8 @@ def main():
             print("-" * 50)
             problem_found = True
         
-        # Réaffiche la barre de progression après le message (sauf pour le dernier élément)
-        if progress_bar.n < len(files_to_analyze):
-            progress_bar.display()
+        # Réaffiche la barre de progression mise à jour
+        progress_bar.display()
 
     progress_bar.close()
 
