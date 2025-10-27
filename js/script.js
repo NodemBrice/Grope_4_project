@@ -8,30 +8,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const footer = document.querySelector('footer');
 
     if (introOverlay && introVideo) {
-        // Fonction pour cacher l'overlay et afficher le contenu
-        const showContent = () => {
+        // Vérifier si l'intro a déjà été jouée dans cette session
+        if (sessionStorage.getItem('introPlayed') === 'true') {
             introOverlay.style.display = 'none';
             if (header) header.classList.remove('hidden');
             if (main) main.classList.remove('hidden');
             if (footer) footer.classList.remove('hidden');
-        };
+        } else {
+            // Fonction pour cacher l'overlay et afficher le contenu
+            const showContent = () => {
+                introOverlay.style.display = 'none';
+                if (header) header.classList.remove('hidden');
+                if (main) main.classList.remove('hidden');
+                if (footer) footer.classList.remove('hidden');
+                // Marquer comme joué pour cette session
+                sessionStorage.setItem('introPlayed', 'true');
+            };
 
-        // À la fin de la vidéo
-        introVideo.addEventListener('ended', showContent);
+            // À la fin de la vidéo
+            introVideo.addEventListener('ended', showContent);
 
-        // Bouton skip
-        if (skipButton) {
-            skipButton.addEventListener('click', () => {
-                introVideo.pause();
-                showContent();
+            // Bouton skip
+            if (skipButton) {
+                skipButton.addEventListener('click', () => {
+                    introVideo.pause();
+                    showContent();
+                });
+            }
+
+            // Pour forcer le play si besoin (sur certains navigateurs)
+            introVideo.play().catch(error => {
+                console.log('Autoplay bloqué:', error);
+                // Optionnel: Afficher un bouton play si autoplay échoue
             });
         }
-
-        // Pour forcer le play si besoin (sur certains navigateurs)
-        introVideo.play().catch(error => {
-            console.log('Autoplay bloqué:', error);
-            // Optionnel: Afficher un bouton play si autoplay échoue
-        });
     }
 
     // Menu hamburger
