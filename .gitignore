@@ -1,0 +1,3 @@
+# Fichiers a ignorer par Git
+venv/
+.env
