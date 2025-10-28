@@ -1,3 +1,5 @@
 # Fichiers a ignorer par Git
 venv/
 .env
+echo ".env"
+echo "venv"
