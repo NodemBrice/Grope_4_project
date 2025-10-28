@@ -1,40 +1,186 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>École d'Informatique - Programmes</title>
-    <link rel="icon" href="images/favicon.png" type="image/png">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
     <header>
-        <div class="container">
-            <img src="images/logo.png" alt="Logo de l'école" class="logo">
+        <div class="container header-inner">
+            <img src="images/logo.png" alt="Logo de l'école" class="logo" />
             <nav id="nav-menu">
                 <ul>
                     <li><a href="index.html">Accueil</a></li>
                     <li><a href="a-propos.html">À propos</a></li>
-                    <li><a href="programmes.html">Programmes</a></li>
-                    <li><a href="international.html">Mobilité Internationale</a></li>
+                    <li><a href="programmes.html" class="active">Programmes</a></li>
+                    <li><a href="international.html">International</a></li>
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
             </nav>
-            <button id="menu-toggle">☰</button>
+            <button id="menu-toggle" aria-label="Ouvrir le menu">☰</button>
         </div>
     </header>
+
     <main>
-        <section>
-            <h1>Nos Programmes</h1>
-            <p>Découvrez nos formations en Bachelor et Master.........</p>
-            <p>Nos cursus sont conçus pour répondre aux exigences du marché de l’emploi, en associant théorie et pratique, avec des enseignants expérimentés et des partenariats professionnels solides.</p>
-            <a href="bachelor.html" class="btn">Bachelor en Informatique</a>
-            <a href="master.html" class="btn">Master en Informatique</a>
+        <section class="hero hero-small">
+            <div class="container">
+                <h1>Nos programmes — Bachelor &amp; Master</h1>
+                <p class="lead">Formations professionnalisantes en informatique : développement, data, cybersécurité, cloud et IA appliquée. Durée, débouchés et structure pédagogique clairement présentés.</p>
+
+                <div class="hero-actions">
+                    <a href="#program-cards" class="btn primary">Découvrir nos programmes</a>
+                    <a href="#contact-info" class="btn outline">Demander une info / RDV</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="container intro">
+            <div class="intro-grid">
+                <div class="intro-text">
+                    <h2>Des cursus pensés pour l'employabilité</h2>
+                    <p>Nos cursus associent modules théoriques, travaux pratiques et projets en entreprise. Chaque étudiant réalise au minimum un projet fil rouge et un stage en entreprise.</p>
+                </div>
+                <div class="intro-list">
+                    <ul>
+                        <li><strong>Approche pratique :</strong> ateliers, hackathons, projets réels</li>
+                        <li><strong>Partenariats :</strong> entreprises locales et internationales</li>
+                        <li><strong>Mobilité :</strong> programmes d'échanges et stages à l'étranger</li>
+                        <li><strong>Accompagnement carrière :</strong> coaching CV, simulations d'entretien</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="program-cards" class="container cards-section">
+            <h2>Nos programmes phares</h2>
+            <p class="section-sub">Choisis le parcours qui correspond à ton projet professionnel.</p>
+
+            <div class="cards-grid">
+                <article class="card card-program">
+            
+                    <div class="card-body">
+                        <h3>Bachelor en Informatique</h3>
+                        <p class="muted">Durée : 3 ans • Rythme : temps plein</p>
+                        <ul>
+                            <li>Fondamentaux : algorithmique, structures de données, OOP</li>
+                            <li>Web & Mobile : HTML/CSS/JS, frameworks modernes</li>
+                            <li>Base de données & backend : SQL, API, sécurité de base</li>
+                            <li>Projet fil rouge et stage (6–12 semaines)</li>
+                        </ul>
+                        <div class="card-actions">
+                            <a href="bachelor.html" class="btn">En savoir plus</a>
+                            <a href="contact.html" class="btn outline">S'inscrire / RDV</a>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card card-program">
+                
+                    <div class="card-body">
+                        <h3>Master en Informatique</h3>
+                        <p class="muted">Durée : 2 ans • Niveau : Bac+3 requis</p>
+                        <ul>
+                            <li>Spécialisations : Data Science, IA appliquée, Cyber-sécurité, Cloud</li>
+                            <li>Projets en partenariat entreprise / recherche</li>
+                            <li>Stage de fin d'études ou mémoire professionnel</li>
+                            <li>Soutien à la publication et valorisation de projets</li>
+                        </ul>
+                        <div class="card-actions">
+                            <a href="master.html" class="btn">En savoir plus</a>
+                            <a href="contact.html" class="btn outline">Demander une fiche</a>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="card card-program">
+                    
+                    <div class="card-body">
+                        <h3>Bootcamps & Formations courtes</h3>
+                        <p class="muted">Durée : 8 à 12 semaines</p>
+                        <ul>
+                            <li>Full-stack web, Data analysis, DevOps</li>
+                            <li>Formation intensive, projets pratiques</li>
+                            <li>Aide à l'insertion : ateliers CV, mises en relation</li>
+                        </ul>
+                        <div class="card-actions">
+                            <a href="bootcamp.html" class="btn">Voir les prochaines sessions</a>
+                            <a href="contact.html" class="btn outline">S'informer</a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="container modules">
+            <h2>Exemple de modules (Bachelor)</h2>
+            <div class="modules-grid">
+                <div class="module">
+                    <h4>Année 1</h4>
+                    <p>Intro à la programmation, mathématiques pour l'info, systèmes d'exploitation, projet d'initiation.</p>
+                </div>
+                <div class="module">
+                    <h4>Année 2</h4>
+                    <p>Structures de données, base de données, développement web, réseaux, travaux pratiques.</p>
+                </div>
+                <div class="module">
+                    <h4>Année 3</h4>
+                    <p>Spécialisation légère (choix), projet fil rouge, stage et préparation à l'emploi.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container stats">
+            <div class="stats-grid">
+                <div class="stat">
+                    <h3>95%</h3>
+                    <p>Insertion professionnelle dans les 6 mois</p>
+                </div>
+                <div class="stat">
+                    <h3>Partenaires</h3>
+                    <p>Plus de 30 entreprises partenaires locales et internationales</p>
+                </div>
+                <div class="stat">
+                    <h3>Stages</h3>
+                    <p>Stages garantis et accompagnés par le service carrière</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container cta">
+            <div class="cta-inner">
+                <h2>Prêt à rejoindre nos programmes ?</h2>
+                <p>Demande une fiche détaillée, prends rendez-vous avec un conseiller ou postule en ligne dès maintenant.</p>
+                <div class="cta-actions">
+                    <a href="contact.html" id="contact-info" class="btn primary">Prendre rendez-vous / Contacter</a>
+                
+                </div>
+            </div>
         </section>
     </main>
-    <footer>
-        <p>&copy; 2025 École d'Informatique. Tous droits réservés.</p>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div>
+                <img src="images/logo.png" alt="Logo" style="height:48px;" />
+                <p>© 2025 École d'Informatique. Tous droits réservés.</p>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>contact@ecoleinfo.example<br/>+237 698 73 60 47</p>
+            </div>
+            <div>
+                <h4>Liens</h4>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="a-propos.html">À propos</a></li>
+                    <li><a href="programmes.html">Programmes</a></li>
+                </ul>
+            </div>
+        </div>
     </footer>
+
     <script src="js/script.js"></script>
 </body>
 </html>
